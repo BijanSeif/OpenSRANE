@@ -1,0 +1,6 @@
+
+*.pyc
+*.ipynb
+*.Log
+*.OPR
+*.OPRrec

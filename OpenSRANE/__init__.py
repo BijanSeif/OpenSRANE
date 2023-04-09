@@ -17,8 +17,43 @@
 # **   Bijan SayyafZadeh (B.Sayyaf@yahoo.com)                           **
 # **   MehDi Sharifi                                                    **
 # **   Abdolreza Sarvghad Moghaddam                                     **
-# **   Eslam Kashi                                                      **
+# **   ----- -----                                                      **
 # **                                                                    **
 # ** ****************************************************************** */
 
+import os as _os
 
+
+pathdir=_os.path.dirname(__file__) #Get the current file path
+
+
+lstm=[x for x in _os.listdir(pathdir) if _os.path.isdir('\\'.join([pathdir,x]))==True and not x.startswith("_")] #Get list of directories in the current file
+
+#import All subpackages
+for folder in lstm: #for each folder
+    importstr=f'from opensrane import {folder}' #import string command
+    exec(importstr)                 #Execute the string command line
+
+#import Misc Commands
+lstm=['Misc']
+for folder in lstm: #for each folder
+    a=[pathdir,folder] 
+    npath='\\'.join(a) #Join the path and directory to get access to each folder 
+    lst=_os.listdir(npath) #Get the list of the files exist in the folder
+    lst=[x[:len(x)-3] for x in lst if x.endswith('.py') and not x.startswith('_') and not x.startswith('ObjManager')] #Get list of each py file
+    
+    for i in lst: #Import all classes and functions in the folder
+        importstr=f'from .{folder}.{i} import *' #import string command
+        exec(importstr)                 #Execute the string command line
+        
+        
+
+# del all above variables that aren't needed for future
+del(importstr)
+del(a)
+del(pathdir)
+del(lstm)
+del(npath)
+del(lst)
+del(folder)
+del(i)
