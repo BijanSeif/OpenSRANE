@@ -55,7 +55,7 @@ class recorder(_NewClass):
     
     '''
     
-    def __init__(self,tag,filename='Recorder.dat',fileAppend=True, recordfield='DamageLevel', NodesGroupTag=1):
+    def __init__(self,tag,filename='Recorder',fileAppend=True, recordfield='DamageLevel', NodesGroupTag=1):
          
         #---- Fix Part for each class __init__ ----
         ObjManager.Add(tag,self)
@@ -366,11 +366,12 @@ class recorder(_NewClass):
                     file.write(AllData)
 
 
-    def LoadRecorderfile(filename=''):
+    def LoadRecorderfile(self,filename=''):
         '''
         This function return results of as a dictionary with keys equal to scenario tag and values equal to entered value
         '''
-
+        if filename=='': filename=self.filename+'.OPRrec'
+        
         with open(filename, "r") as file:
             data = file.readlines()
             
