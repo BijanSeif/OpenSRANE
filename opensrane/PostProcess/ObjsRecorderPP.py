@@ -190,6 +190,7 @@ class ObjsRecorderPP():
 
         #----NodesGroupDamProb calculate each nodesgroup damage probability at each node
         #calculate nodesgroup tag and number of the nodes
+        NodesGroupDamageList=[i for i in NodesGroupDamageList if i!={}]
         for NG in NodesGroupDamageList:
             
             NGtag=list(NG.keys())[0]
