@@ -4,3 +4,5 @@
 *.Log
 *.OPR
 *.OPRrec
+*.LogR
+*-checkpoint.ipynb
