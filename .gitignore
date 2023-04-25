@@ -6,3 +6,8 @@
 *.OPRrec
 *.LogR
 *-checkpoint.ipynb
+OpenSRANE.egg-info/dependency_links.txt
+OpenSRANE.egg-info/PKG-INFO
+OpenSRANE.egg-info/requires.txt
+OpenSRANE.egg-info/SOURCES.txt
+OpenSRANE.egg-info/top_level.txt
