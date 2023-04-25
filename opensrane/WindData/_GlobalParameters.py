@@ -3,7 +3,7 @@
 # **                                                                    **
 # **                                                                    **
 # **                                                                    **
-# ** (C) Copyright 2022, Mentioned Regents in 'COPYRIGHT' file.         **
+# ** (C) Copyright 2023, Mentioned Regents in 'COPYRIGHT' file.         **
 # **                                                                    **
 # ** All Rights Reserved.                                               **
 # **                                                                    **
