@@ -3,7 +3,7 @@
 # **                                                                    **
 # **                                                                    **
 # **                                                                    **
-# ** (C) Copyright 2022, Bijan Sayyafzadeh                              **
+# ** (C) Copyright 2022, Mentioned Regents in 'COPYRIGHT' file.         **
 # **                                                                    **
 # ** All Rights Reserved.                                               **
 # **                                                                    **
@@ -20,6 +20,14 @@
 # **   Eslam Kashi                                                      **
 # **                                                                    **
 # ** ****************************************************************** */
+
+'''
+ Written: Bijan Sayyafzadeh
+ Created: 2022
+ 
+ Revision: -
+ By & Date: -
+'''
 
 #This is a Sample File and any new Model is better to be constructed by a copy of this file
 from opensrane.Misc._NewClass import _NewClass

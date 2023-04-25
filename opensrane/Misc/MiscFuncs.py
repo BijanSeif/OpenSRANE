@@ -3,7 +3,7 @@
 # **                                                                    **
 # **                                                                    **
 # **                                                                    **
-# ** (C) Copyright 2022, Bijan Sayyafzadeh                              **
+# ** (C) Copyright 2022, Mentioned Regents in 'COPYRIGHT' file.         **
 # **                                                                    **
 # ** All Rights Reserved.                                               **
 # **                                                                    **
