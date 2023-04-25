@@ -8,7 +8,7 @@
 # ** All Rights Reserved.                                               **
 # **                                                                    **
 # ** Commercial use of this program without express permission of the   **
-# ** owner (Bijan SayyafZadeh and The Regents), is                      **
+# ** owner (The Regents), is                                            **
 # ** strictly prohibited.  See file 'COPYRIGHT'  in main directory      **
 # ** for information on usage and redistribution,  and for a            **
 # ** DISCLAIMER OF ALL WARRANTIES.                                      **
