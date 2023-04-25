@@ -8,15 +8,15 @@
 # ** All Rights Reserved.                                               **
 # **                                                                    **
 # ** Commercial use of this program without express permission of the   **
-# ** owner (Bijan SayyafZadeh and following Developers), is             **
+# ** owner (Bijan SayyafZadeh and The Regents), is                      **
 # ** strictly prohibited.  See file 'COPYRIGHT'  in main directory      **
 # ** for information on usage and redistribution,  and for a            **
 # ** DISCLAIMER OF ALL WARRANTIES.                                      **
 # **                                                                    **
 # ** Developed by:                                                      **
-# **   Bijan SayyafZadeh (OpenSRANE@Gmail.com)                           **
+# **   Bijan SayyafZadeh (OpenSRANE@Gmail.com)                          **
 # **   MehDi Sharifi                                                    **
-# **   Abdolreza S. Moghadam                                     **
+# **   Abdolreza S. Moghadam                                            **
 # **   Eslam Kashi                                                      **
 # **                                                                    **
 # ** ****************************************************************** */
