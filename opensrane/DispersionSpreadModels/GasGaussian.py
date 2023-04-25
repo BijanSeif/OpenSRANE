@@ -14,7 +14,7 @@
 # ** DISCLAIMER OF ALL WARRANTIES.                                      **
 # **                                                                    **
 # ** Developed by:                                                      **
-# **   Bijan SayyafZadeh (B.Sayyaf@yahoo.com)                           **
+# **   Bijan SayyafZadeh (OpenSRANE@Gmail.com)                           **
 # **   MehDi Sharifi                                                    **
 # **   Abdolreza Sarvghad Moghaddam                                     **
 # **   ----- -----                                                      **
