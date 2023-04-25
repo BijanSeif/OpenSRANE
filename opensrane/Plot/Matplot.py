@@ -21,6 +21,15 @@
 # **                                                                    **
 # ** ****************************************************************** */
 
+'''
+ Written: Bijan Sayyafzadeh
+ Created: 2022
+ 
+ Revision: -
+ By & Date: -
+'''
+
+
 import matplotlib.pyplot as _plt
 from scipy.stats import norm as _norm
 from scipy.stats import lognorm as _lognorm

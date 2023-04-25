@@ -21,6 +21,15 @@
 # **                                                                    **
 # ** ****************************************************************** */
 
+'''
+ Written: Bijan Sayyafzadeh
+ Created: 2022
+ 
+ Revision: -
+ By & Date: -
+'''
+
+
 import plotly.graph_objects as _go
 import plotly.colors as _PLcols 
 from scipy.stats import norm as _norm

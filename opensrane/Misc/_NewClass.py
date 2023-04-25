@@ -21,6 +21,15 @@
 # **                                                                    **
 # ** ****************************************************************** */
 
+'''
+ Written: Bijan Sayyafzadeh
+ Created: 2022
+ 
+ Revision: -
+ By & Date: -
+'''
+
+
 class _NewClass():
     '''
     All new classes in each module or subpackage are child of this class

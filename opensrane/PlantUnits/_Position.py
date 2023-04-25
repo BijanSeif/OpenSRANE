@@ -21,6 +21,15 @@
 # **                                                                    **
 # ** ****************************************************************** */
 
+'''
+ Written: Bijan Sayyafzadeh
+ Created: 2022
+ 
+ Revision: -
+ By & Date: -
+'''
+
+
 class _Position():
     HGRPCoordinate=0  #Horizontal Global Reference Point Coordinate
     VGRPCoordinate=0  #Vertical Global Reference Point Coordinate

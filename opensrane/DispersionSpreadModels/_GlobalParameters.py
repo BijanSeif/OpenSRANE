@@ -21,6 +21,15 @@
 # **                                                                    **
 # ** ****************************************************************** */
 
+'''
+ Written: Bijan Sayyafzadeh
+ Created: 2022
+ 
+ Revision: -
+ By & Date: -
+'''
+
+
 import random as _rnd
 import opensrane as _opr
 
