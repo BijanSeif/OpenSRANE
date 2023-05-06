@@ -42,6 +42,7 @@ import math as _math
 import plotly.figure_factory as _ff
 # from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 from plotly.offline import iplot as _iplot
+from plotly.offline import plot as _plot
 from tqdm import tqdm as _tqdm
 
 '''
@@ -100,7 +101,7 @@ from tqdm import tqdm as _tqdm
 '''
 
 
-def PlotWindRose(WindRoseTag,Draw_For_Day=True):
+def PlotWindRose(WindRoseTag,Draw_For_Day=True,PlotMode=1):
     #Figure Settings -------------------------------------------------------- 
     fig = _go.Figure()
     
@@ -150,8 +151,18 @@ def PlotWindRose(WindRoseTag,Draw_For_Day=True):
         #polar_radialaxis_ticksuffix='%',
         polar_angularaxis_rotation=90,)
     
+    if PlotMode==1:
+        
+        return _iplot(fig)
+        
+    elif PlotMode==2:
+        
+        image_filename='WindDay.html' if Draw_For_Day==True else 'Windnight.html'
+        _plot(fig,filename=image_filename)
+        
+    else:
+        fig.show()
     
-    return _iplot(fig)
 
 
 def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressurePointNumber=20,
