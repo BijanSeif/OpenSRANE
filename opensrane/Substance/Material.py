@@ -38,14 +38,10 @@ from ._GlobalParameters import _GlobalParameters
 class Material(_NewClass, _GlobalParameters):
     
     
-    def __init__(self,tag,name='No name',isLiquidBooleanFunction=None,Density=None, GasDensity=None, BoilingPointGasDensity=None, LiquidPhaseSpreadModelTag=None, GasPhaseDispModelTag=None,
-        Dynamic_Viscousity=None,Molar_Heat_of_Combustion=None,Stoichiometric_Concentration=None,
-        Vapour_Density=None,Volumetric_Heat_Capacity=None,Molecular_Weight=None,Molar_Volume=None,
-        Boiling_Point=None,Critical_Pressure=None,Critical_Temperature=None,Melting_Point=None,Standard_Enthalpy_of_Formation=None,
-        Vapour_Pressure=None,Molar_Enthalpy_of_Vaporization=None,Specific_Heat_of_Vaporization=None,Molar_Heat_Capacity=None,
-        Specific_Heat_Capacity=None,Specific_Heat_Ratio=None,Autoignition_Temperature=None,Flash_Point=None,Specific_Heat_of_Combustion=None,
-        Lower_Flammability_Limit=None,Upper_Flammability_Limit=None, Bioconcentration_Factor=None,Liquid_Partial_Pressure_in_Atmosphere=None,
-        ):
+    def __init__(self,tag,name='No name', Density=None, GasDensity=None, BoilingPointGasDensity=None, 
+                 Dynamic_Viscousity=None,Molar_Heat_of_Combustion=None,Stoichiometric_Concentration=None,
+                 Vapour_Density=None,Volumetric_Heat_Capacity=None,Molecular_Weight=None,Molar_Volume=None,
+                 Boiling_Point=None,Critical_Pressure=None,Critical_Temperature=None,Melting_Point=None,Standard_Enthalpy_of_Formation=None, Vapour_Pressure=None,Molar_Enthalpy_of_Vaporization=None,Specific_Heat_of_Vaporization=None,Molar_Heat_Capacity=None, Specific_Heat_Capacity=None,Specific_Heat_Ratio=None,Autoignition_Temperature=None,Flash_Point=None,Specific_Heat_of_Combustion=None, Lower_Flammability_Limit=None,Upper_Flammability_Limit=None, Bioconcentration_Factor=None,Liquid_Partial_Pressure_in_Atmosphere=None, ):
          
         #---- Fix Part for each class __init__ ----
         ObjManager.Add(tag,self)
