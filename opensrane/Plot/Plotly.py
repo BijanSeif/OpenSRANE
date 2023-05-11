@@ -101,7 +101,7 @@ from tqdm import tqdm as _tqdm
 '''
 
 
-def PlotWindRose(WindRoseTag,Draw_For_Day=True,PlotMode=1):
+def PlotWindRose(WindRoseTag,Draw_For_Day=True,PlotMode=1, width=None, height=None):
     #Figure Settings -------------------------------------------------------- 
     fig = _go.Figure()
     
@@ -151,6 +151,12 @@ def PlotWindRose(WindRoseTag,Draw_For_Day=True,PlotMode=1):
         #polar_radialaxis_ticksuffix='%',
         polar_angularaxis_rotation=90,)
     
+    if height!=None:
+        fig.update_layout(height=height)
+    if width!=None:
+        fig.update_layout(width=width)
+
+
     if PlotMode==1:
         
         return _iplot(fig)
@@ -158,7 +164,7 @@ def PlotWindRose(WindRoseTag,Draw_For_Day=True,PlotMode=1):
     elif PlotMode==2:
         
         image_filename='WindDay.html' if Draw_For_Day==True else 'Windnight.html'
-        _plot(fig,filename=image_filename)
+        _plot(fig,filename=image_filename,config = dict({'scrollZoom': True}))
         
     else:
         fig.show()
@@ -167,8 +173,8 @@ def PlotWindRose(WindRoseTag,Draw_For_Day=True,PlotMode=1):
 
 def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressurePointNumber=20,
                 RadiationList=[],RadiationHeight=2,RadiationPointNumber=20, 
-                GasConcentrationlist=[],GasConcentrationHeght=2,ConcentrationPointNumber=10,
-                ):
+                GasConcentrationlist=[],GasConcentrationHeght=2,ConcentrationPointNumber=10
+                , width=None, height=None):
     '''
     RadiationList: list of desired radiation values to be plotted 
     RadiationHeight: height of radiation calculations
@@ -555,11 +561,22 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
     fig.update_xaxes(title_text='x',showline=True,linewidth=2, linecolor='black',range=[minx-0.05*L1, maxx+0.05*L1],title_font=dict(size=18, family='Courier', color='black')) #mirror=True
     fig.update_yaxes(title_text='y',showline=True,linewidth=2, linecolor='black',range=[miny-0.05*L2, maxy+0.05*L2],title_font=dict(size=18, family='Courier', color='black'))#,mirror=True
     
-    
+    if height!=None:
+        fig.update_layout(height=height)
+    if width!=None:
+        fig.update_layout(width=width)
+
     if PlotMode==1:
-        fig.show(config = dict({'scrollZoom': True})) 
-    else:
+        
         return _iplot(fig)
+        
+    elif PlotMode==2:
+        
+        image_filename='PlotUnits2D.html'
+        _plot(fig,filename=image_filename, config = dict({'scrollZoom': True}))
+        
+    else:
+        fig.show(config = dict({'scrollZoom': True}))
 
 def PlotIndividualRisk( PlotMode=1, NodesGroupTag=1, NodesProbabilityList=[], ContorList=[]):
     '''
@@ -663,12 +680,19 @@ def PlotIndividualRisk( PlotMode=1, NodesGroupTag=1, NodesProbabilityList=[], Co
             
     fig.update_xaxes(title_text='x',showline=True,linewidth=2, linecolor='black',range=[minx-0.05*L1, maxx+0.05*L1],title_font=dict(size=18, family='Courier', color='black')) #mirror=True
     fig.update_yaxes(title_text='y',showline=True,linewidth=2, linecolor='black',range=[miny-0.05*L2, maxy+0.05*L2],title_font=dict(size=18, family='Courier', color='black'))#,mirror=True
-      
+        
     
     if PlotMode==1:
-        fig.show(config = dict({'scrollZoom': True})) 
+        
+        return _iplot(fig)
+        
+    elif PlotMode==2:
+        
+        image_filename='PlotIndividualRisk.html'
+        _plot(fig,filename=image_filename,config = dict({'scrollZoom': True}))
+        
     else:
-        return _iplot(fig)   
+        fig.show(config = dict({'scrollZoom': True}))
 
 def _PlotTanks(fig,PlotDamagedColor=True):
 
@@ -751,7 +775,7 @@ def _PlotTanks(fig,PlotDamagedColor=True):
                          )
     return minx,maxx,miny,maxy
     
-def PlotFragilities(StdNumber=3,NPoints=100, FragilityTagList=[]):
+def PlotFragilities(StdNumber=3,NPoints=100, FragilityTagList=[],PlotMode=1, width=None, height=None):
     '''
     All Fragilities that are defined by the user, Are drawn using This Function
     FragilityTagList = list of fragilities tag that user want to plot
@@ -812,16 +836,32 @@ def PlotFragilities(StdNumber=3,NPoints=100, FragilityTagList=[]):
         fig.update_yaxes(title_text='Probability',showline=True,linewidth=2, linecolor='black',mirror=True,range=[0, 1.05],title_font=dict(size=18, family='Courier', color='black'),showspikes=True)
         fig.update_layout(title={'text': "Fragilities",'y':0.9,'x':0.13,'xanchor': 'center', 'yanchor': 'top'},height=800)
         fig.update_layout(legend=dict(yanchor="top",y=0.99,xanchor="left",x=0.01,bordercolor="Black", borderwidth=2))
+        
+        if height!=None:
+            fig.update_layout(height=height)
+        if width!=None:
+            fig.update_layout(width=width)
         #fig.update_traces(hovertemplate="<b>%{text}</b><br><br>" +"Random Variable: %{x}<br>" +"Probability: %{y}<br>" +"<extra></extra>",)
         
     
-        return _iplot(fig)
+        if PlotMode==1:
+        
+            return _iplot(fig)
+            
+        elif PlotMode==2:
+            
+            image_filename='PlotFragilities.html'
+            _plot(fig,filename=image_filename,config = dict({'scrollZoom': True}))
+            
+        else:
+            fig.show(config = dict({'scrollZoom': True}))
+
     else:
         print('There is No fragility function to Draw!')
 
 
 
-def PlotProbits(StdNumber=3,NPoints=100,ProbitTag=None):
+def PlotProbits(StdNumber=3,NPoints=100,ProbitTag=None,PlotMode=1,  width=None, height=None):
     '''
     All Fragilities that are defined by the user, Are drawn using This Function
     '''
@@ -900,19 +940,34 @@ def PlotProbits(StdNumber=3,NPoints=100,ProbitTag=None):
         #Plotly Settings ---------------------------------------------------------------------------------------------------------------------------------------
         fig.update_xaxes(title_text='Random Variables',showline=True,linewidth=2, linecolor='black',mirror=True,range=[0, max(x)],title_font=dict(size=18, family='Courier', color='black'),showspikes=True)
         fig.update_yaxes(title_text='Probability',showline=True,linewidth=2, linecolor='black',mirror=True,range=[0, 1.05],title_font=dict(size=18, family='Courier', color='black'),showspikes=True)
-        fig.update_layout(title={'text': "Probits",'y':0.9,'x':0.13,'xanchor': 'center', 'yanchor': 'top'},height=800)
+        fig.update_layout(title={'text': "Probits",'y':0.9,'x':0.13,'xanchor': 'center', 'yanchor': 'top'})
         fig.update_layout(legend=dict(yanchor="top",y=0.99,xanchor="left",x=0.01,bordercolor="Black", borderwidth=2))
+        if height!=None:
+            fig.update_layout(height=height)
+        if width!=None:
+            fig.update_layout(width=width)
         #fig.update_traces(hovertemplate="<b>%{text}</b><br><br>" +"Random Variable: %{x}<br>" +"Probability: %{y}<br>" +"<extra></extra>",)
         
     
-        return _iplot(fig)
+        if PlotMode==1:
+        
+            return _iplot(fig)
+            
+        elif PlotMode==2:
+            
+            image_filename='PlotProbits.html'
+            _plot(fig,filename=image_filename,config = dict({'scrollZoom': True}))
+            
+        else:
+            fig.show(config = dict({'scrollZoom': True}))
+        
     else:
         print('There is No fragility function to Draw!')
 
 
 
 
-def PlotHazard():
+def PlotHazard(PlotMode=1, width=None, height=None):
     '''
     The First Hazard Object that are defined by the user, is drawn using This Function
     '''
@@ -945,6 +1000,20 @@ def PlotHazard():
     fig.update_yaxes(title_text='Probability',showline=True,linewidth=2, linecolor='black',mirror=True,range=[0, 1.05],title_font=dict(size=18, family='Courier', color='black'),showspikes=True)
     fig.update_layout(title={'text': "Hazard Curve",'y':0.92,'x':0.16,'xanchor': 'center', 'yanchor': 'top'},height=800,title_font=dict(size=22,  color='black'))
     fig.update_layout(legend=dict(yanchor="top",y=0.99,xanchor="right",x=0.99,bordercolor="Black", borderwidth=2))
+    if height!=None:
+        fig.update_layout(height=height)
+    if width!=None:
+        fig.update_layout(width=width)
+        
     
-    
-    return _iplot(fig)
+    if PlotMode==1:
+        
+            return _iplot(fig)
+            
+    elif PlotMode==2:
+        
+        image_filename='PlotHazard.html'
+        _plot(fig,filename=image_filename,config = dict({'scrollZoom': True}))
+        
+    else:
+        fig.show(config = dict({'scrollZoom': True}))
