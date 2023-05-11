@@ -157,7 +157,7 @@ def PlotWindRose(WindRoseTag,Draw_For_Day=True,PlotMode=1, width=None, height=No
         fig.update_layout(width=width)
 
 
-    if PlotMode==1:
+    if PlotMode==3:
         
         return _iplot(fig)
         
@@ -174,7 +174,7 @@ def PlotWindRose(WindRoseTag,Draw_For_Day=True,PlotMode=1, width=None, height=No
 def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressurePointNumber=20,
                 RadiationList=[],RadiationHeight=2,RadiationPointNumber=20, 
                 GasConcentrationlist=[],GasConcentrationHeght=2,ConcentrationPointNumber=10
-                , width=None, height=None):
+                ,raw=False, width=None, height=None):
     '''
     RadiationList: list of desired radiation values to be plotted 
     RadiationHeight: height of radiation calculations
@@ -188,7 +188,7 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
     GasConcentrationHeght: heght of Concentration calculations
     ConcentrationPointNumber: Concentration Points number for numeric calculations
     
-    
+    raw: Boolean that if consider as True means that just only plot the plant without showing any damages or other events.
     '''
     
     Plcollist=_PLcols.DEFAULT_PLOTLY_COLORS*20 #List of plotly Colors
@@ -215,7 +215,7 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
     ArrowsDict={} #Dictionary that Stores the Damage level arrows
     
     #Plot Tanks
-    minx,maxx,miny,maxy=_PlotTanks(fig,PlotDamagedColor=True)
+    minx,maxx,miny,maxy=_PlotTanks(fig,PlotDamagedColor=True,raw=raw)
 
     
     for Unit in _tqdm(UnitObj,desc='Adding Units Data'):
@@ -240,7 +240,7 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
 
             
             #Draw Liquid Dispersion
-            if DispSprdModelname!=None:
+            if DispSprdModelname!=None and raw==False:
                 if LiquidCenter!=None:
                     
                     x0=LiquidCenter[0]
@@ -272,7 +272,7 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
                         
             
             #Draw Gas Dispersion for BritterMcQuaid Model (Should Be Modify for Specific Entered Concentrations in the list)
-            if DispSprdObj!=None and DispSprdObj.Title=='BritterMcQuaid' and GasConcentrationlist!=[]:
+            if DispSprdObj!=None and DispSprdObj.Title=='BritterMcQuaid' and GasConcentrationlist!=[] and raw==False:
                 CC0=[1,0.8,0.7,0.5,0.4,0.2,0.1,0.05,0.02,0.01,0.005,0.002]
                 P1s=[]
                 P2s=[]
@@ -308,7 +308,7 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
             
             #Draw Gas Dispersion for LqdSprdGaussianGasDisp
 
-            if DispSprdObj!=None and (DispSprdObj.Title=='LqdSprdGaussianGasDisp' or DispSprdObj.Title=='GasGaussian') and GasConcentrationlist!=[]:
+            if DispSprdObj!=None and (DispSprdObj.Title=='LqdSprdGaussianGasDisp' or DispSprdObj.Title=='GasGaussian') and GasConcentrationlist!=[] and raw==False:
                 for C in GasConcentrationlist:
                     points=DispSprdObj.GiveBoundary(C=C,z=GasConcentrationHeght,SegmentNumbers=ConcentrationPointNumber,errpercent=1)
                     fillc=f'rgba(250, 250, 5,0.2)'
@@ -332,7 +332,7 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
       
             
             #Draw Radiation Boundary
-            if PhysicalObj!=None and RadiationList!=[]:
+            if PhysicalObj!=None and RadiationList!=[] and raw==False:
                 # print(f'start of radiation for unit {Unit.tag}')
                 
                 for Rad in RadiationList:
@@ -358,7 +358,7 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
         
         
             #Draw OverPressure boundary
-            if PhysicalObj!=None and OverPressureList!=[]:
+            if PhysicalObj!=None and OverPressureList!=[] and raw==False:
                 # print(f'start of OverPressure for unit {Unit.tag}')            
             
                 for OverP in OverPressureList:
@@ -387,7 +387,7 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
         #Get DamageLevels Arrows Data
         
         
-        if Unit.DamageLevel!=None and Unit.DamageLevel>0:
+        if Unit.DamageLevel!=None and Unit.DamageLevel>0 and raw==False:
             
             #To consider multi damage sources (For radiations)
             DmSources=Unit.DamageSourceTag if type(Unit.DamageSourceTag)==list else [Unit.DamageSourceTag] 
@@ -445,7 +445,7 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
             
             fillDam=f'rgba(255, 0, 0,0.5)'
             fillUnDam=f'rgba(127, 127, 127,0.05)'
-            fig.add_scatter(x=x,y=y,fill='toself',fillcolor=fillDam if dam==True else fillUnDam,mode='lines',
+            fig.add_scatter(x=x,y=y,fill='toself',fillcolor=fillDam if (dam==True and raw==False) else fillUnDam,mode='lines',
                             line=dict(color=NodeGcol,width=1,
                             shape='spline',smoothing=0.9,simplify=False,),
                             hoverinfo='none',name='Vulnerable Object',showlegend=False,legendgroup=Type, visible='legendonly')
@@ -486,40 +486,44 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
                               name='TanksData',showlegend=True,legendgroup='TanksData',))
                               
     # Add single liquid dispersion for legend
-    fig.add_trace(_go.Scatter(x=[None], y=[None], mode='lines',
+    if raw==False: fig.add_trace(_go.Scatter(x=[None], y=[None], mode='lines',
                               line=dict(color=f'rgba(1, 1, 1,0.01)'),
                               name='Liquid Dispersion',showlegend=True,legendgroup='Liquid Dispersion', visible='legendonly'))
                               
     # Add single GasDispersions for legend
-    fig.add_trace(_go.Scatter(x=[None], y=[None], mode='lines',
+    if raw==False: fig.add_trace(_go.Scatter(x=[None], y=[None], mode='lines',
                               line=dict(color=f'rgba(250, 250, 5,1)'),
                               name='GasDispersions',showlegend=True,legendgroup='GasDispersions', visible='legendonly'))
     
     # Add single Radiation for legend
-    for Rad in RadiationList:
-        RadColor=f'rgba(250,50,0,{Rad/max(RadiationList)})'
-        fig.add_trace(_go.Scatter(x=[None], y=[None], mode='lines',
-                                  line=dict(color=RadColor),
-                                  name=f'Radiation{Rad}',showlegend=True,legendgroup=f'Radiation{Rad}', visible='legendonly'))
+    if raw==False: 
+        for Rad in RadiationList:
+            RadColor=f'rgba(250,50,0,{Rad/max(RadiationList)})'
+            fig.add_trace(_go.Scatter(x=[None], y=[None], mode='lines',
+                                    line=dict(color=RadColor),
+                                    name=f'Radiation{Rad}',showlegend=True,legendgroup=f'Radiation{Rad}', visible='legendonly'))
 
     # Add single OverPressure for legend
-    for OverP in OverPressureList:
-        OverPColor=f'rgba(50,250,0,{OverP/max(OverPressureList)})'
-        fig.add_trace(_go.Scatter(x=[None], y=[None], mode='lines',
-                                  line=dict(color=OverPColor),
-                                  name=f'OverPressure{OverP}',showlegend=True,legendgroup=f'OverPressure{OverP}', visible='legendonly'))
+    if raw==False: 
+        for OverP in OverPressureList:
+            OverPColor=f'rgba(50,250,0,{OverP/max(OverPressureList)})'
+            fig.add_trace(_go.Scatter(x=[None], y=[None], mode='lines',
+                                    line=dict(color=OverPColor),
+                                    name=f'OverPressure{OverP}',showlegend=True,legendgroup=f'OverPressure{OverP}', visible='legendonly'))
                                   
     # Add single Damage Level Arrows for legend
     #DamageLevel 0
-    if ArrowsDict!={}:
-        fig.add_trace(_go.Scatter(x=[None], y=[None], mode='lines',
-                                  line=dict(color='rgba'+Plcollist[0][3:-1]+', 0.3)'),
-                                  name=f'DamageLevel {0}',showlegend=True,legendgroup=f'DamageLevel {0}', visible='legendonly'))
+    if raw==False: 
+        if ArrowsDict!={}:
+            fig.add_trace(_go.Scatter(x=[None], y=[None], mode='lines',
+                                    line=dict(color='rgba'+Plcollist[0][3:-1]+', 0.3)'),
+                                    name=f'DamageLevel {0}',showlegend=True,legendgroup=f'DamageLevel {0}', visible='legendonly'))
     #Other Damage Lavels
-    for dmlevel,values in ArrowsDict.items():
-        fig.add_trace(_go.Scatter(x=[None], y=[None], mode='lines',
-                                  line=dict(color='rgba'+Plcollist[dmlevel][3:-1]+', 0.3)'),
-                                  name=f'DamageLevel {dmlevel}',showlegend=True,legendgroup=f'DamageLevel {dmlevel}', visible='legendonly'))
+    if raw==False: 
+        for dmlevel,values in ArrowsDict.items():
+            fig.add_trace(_go.Scatter(x=[None], y=[None], mode='lines',
+                                    line=dict(color='rgba'+Plcollist[dmlevel][3:-1]+', 0.3)'),
+                                    name=f'DamageLevel {dmlevel}',showlegend=True,legendgroup=f'DamageLevel {dmlevel}', visible='legendonly'))
 
     # Add single NodesGroups for legend
     TypeSet=set()
@@ -566,7 +570,7 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
     if width!=None:
         fig.update_layout(width=width)
 
-    if PlotMode==1:
+    if PlotMode==3:
         
         return _iplot(fig)
         
@@ -578,7 +582,7 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
     else:
         fig.show(config = dict({'scrollZoom': True}))
 
-def PlotIndividualRisk( PlotMode=1, NodesGroupTag=1, NodesProbabilityList=[], ContorList=[]):
+def PlotIndividualRisk( PlotMode=1, NodesGroupTag=1, NodesProbabilityList=[], ContorList=[], width=None, height=None):
     '''
     NodesGroupTag: Tag of the nodesgroup that want to see its damage probability
     NodesProbabilityList: list of the nodes damage probability values. 
@@ -680,9 +684,14 @@ def PlotIndividualRisk( PlotMode=1, NodesGroupTag=1, NodesProbabilityList=[], Co
             
     fig.update_xaxes(title_text='x',showline=True,linewidth=2, linecolor='black',range=[minx-0.05*L1, maxx+0.05*L1],title_font=dict(size=18, family='Courier', color='black')) #mirror=True
     fig.update_yaxes(title_text='y',showline=True,linewidth=2, linecolor='black',range=[miny-0.05*L2, maxy+0.05*L2],title_font=dict(size=18, family='Courier', color='black'))#,mirror=True
-        
+
+    if height!=None:
+        fig.update_layout(height=height)
+    if width!=None:
+        fig.update_layout(width=width)    
     
-    if PlotMode==1:
+
+    if PlotMode==3:
         
         return _iplot(fig)
         
@@ -694,7 +703,9 @@ def PlotIndividualRisk( PlotMode=1, NodesGroupTag=1, NodesProbabilityList=[], Co
     else:
         fig.show(config = dict({'scrollZoom': True}))
 
-def _PlotTanks(fig,PlotDamagedColor=True):
+def _PlotTanks(fig,PlotDamagedColor=True,raw=False):
+    
+    #raw: Boolean that if consider as True means that just only plot the plant without showing any damages or other events.
 
     Plcollist=_PLcols.DEFAULT_PLOTLY_COLORS*20 #List of plotly Colors
     Plcollist=['rgb(255, 0, 5)']+Plcollist[1:3]+Plcollist[4:]
@@ -752,7 +763,7 @@ def _PlotTanks(fig,PlotDamagedColor=True):
             fig.add_shape(type="circle", xref="x", yref="y", name=name,
                 x0=xc-D/2, y0=yc-D/2, x1=xc+D/2, y1=yc+D/2,
                 
-                line_color=ColBound ,fillcolor='rgba'+Plcollist[Unit.DamageLevel][3:-1]+', 0.3)' if (Unit.isdamaged==True and PlotDamagedColor==True and Unit.DamageLevel!=None) else ColNodamage,)
+                line_color=ColBound ,fillcolor='rgba'+Plcollist[Unit.DamageLevel][3:-1]+', 0.3)' if (Unit.isdamaged==True and PlotDamagedColor==True and Unit.DamageLevel!=None and raw==False) else ColNodamage,)
                 # 'rgba'+Plcollist[Unit.DamageLevel][3:-1]+', 0.1)' if (Unit.DamageLevel!=None and Unit.DamageLevel!=0) else
 
             #Add Tanks Center Point and Data                
@@ -844,7 +855,7 @@ def PlotFragilities(StdNumber=3,NPoints=100, FragilityTagList=[],PlotMode=1, wid
         #fig.update_traces(hovertemplate="<b>%{text}</b><br><br>" +"Random Variable: %{x}<br>" +"Probability: %{y}<br>" +"<extra></extra>",)
         
     
-        if PlotMode==1:
+        if PlotMode==3:
         
             return _iplot(fig)
             
@@ -949,7 +960,7 @@ def PlotProbits(StdNumber=3,NPoints=100,ProbitTag=None,PlotMode=1,  width=None, 
         #fig.update_traces(hovertemplate="<b>%{text}</b><br><br>" +"Random Variable: %{x}<br>" +"Probability: %{y}<br>" +"<extra></extra>",)
         
     
-        if PlotMode==1:
+        if PlotMode==3:
         
             return _iplot(fig)
             
@@ -1006,7 +1017,7 @@ def PlotHazard(PlotMode=1, width=None, height=None):
         fig.update_layout(width=width)
         
     
-    if PlotMode==1:
+    if PlotMode==3:
         
             return _iplot(fig)
             
