@@ -34,13 +34,14 @@ import opensrane as _opr
 import plotly.express as _px
 import plotly.graph_objects as _go
 import math as _math
-
+from plotly.offline import iplot as _iplot
+from plotly.offline import plot as _plot
 
 
 class PlotPP():
 
 
-    def DamageLevel_ExpectedLoss(PPResults=None,yaxistype='log',fig_height=600,fig_width=600):
+    def DamageLevel_ExpectedLoss(PPResults=None,yaxistype='log',PlotMode=1,height=None,width=None, ):
         
         '''
         This function plots the expected loss of containment in each damage level
@@ -75,15 +76,29 @@ class PlotPP():
         fig.update_layout(
             title_text='Expected loss of containment in each damage level', # title of plot
             bargap=0.01, # gap between bars of adjacent location coordinates
-            height=fig_height,width=fig_width,
             plot_bgcolor='white', 
             yaxis=dict(type=yaxistype,range=yaxisrange, showline=True, linecolor='black',linewidth=2),
             xaxis=dict(type='linear',showline=True, linecolor='black',linewidth=2)
         )
+        
+        if height!=None:
+            fig.update_layout(height=height)
+        if width!=None:
+            fig.update_layout(width=width)        
 
-        fig.show()
+        if PlotMode==3:
+        
+            return _iplot(fig)
+            
+        elif PlotMode==2:
+            
+            image_filename='DamageLevel_ExpectedLoss.html'
+            _plot(fig,filename=image_filename)
+            
+        else:
+            fig.show()
 
-    def Unit_ZeroLevel_DamageProb(PPResults=None,yaxistype='log',fig_height=600,fig_width=600):
+    def Unit_ZeroLevel_DamageProb(PPResults=None,yaxistype='log',PlotMode=1,height=None,width=None,):
         
         '''
         This function plots each plant unit damage probability in zero level
@@ -116,15 +131,29 @@ class PlotPP():
         fig.update_layout(
             title_text='Expected unit zero level damage', # title of plot
             bargap=0.01, # gap between bars of adjacent location coordinates
-            height=fig_height,width=fig_width,
             plot_bgcolor='white',
             yaxis=dict(type=yaxistype,showline=True, linecolor='black',linewidth=2,range=yaxisrange),
             xaxis=dict(type='linear',showline=True, linecolor='black',linewidth=2), 
         )
 
-        fig.show()
+        if height!=None:
+            fig.update_layout(height=height)
+        if width!=None:
+            fig.update_layout(width=width)        
 
-    def Fragilities_Probits_Probability(PPResults=None,yaxistype='log',fig_height=600,fig_width=600):
+        if PlotMode==3:
+        
+            return _iplot(fig)
+            
+        elif PlotMode==2:
+            
+            image_filename='Unit_ZeroLevel_DamageProb.html'
+            _plot(fig,filename=image_filename)
+            
+        else:
+            fig.show()
+
+    def Fragilities_Probits_Probability(PPResults=None,yaxistype='log',PlotMode=1,height=None,width=None,):
         
         '''
         This function plots each fragility and probit happening probability
@@ -156,16 +185,30 @@ class PlotPP():
         fig.update_layout(
             title_text='Expected Fragility/Probit happening', # title of plot
             bargap=0.01, # gap between bars of adjacent location coordinates
-            height=fig_height,width=fig_width,
             plot_bgcolor='white',
             yaxis=dict(type=yaxistype,showline=True, linecolor='black',linewidth=2,range=yaxisrange),
             xaxis=dict(type='linear',showline=True, linecolor='black',linewidth=2) 
         )
 
-        fig.show()
+        if height!=None:
+            fig.update_layout(height=height)
+        if width!=None:
+            fig.update_layout(width=width)        
+
+        if PlotMode==3:
+        
+            return _iplot(fig)
+            
+        elif PlotMode==2:
+            
+            image_filename='Fragilities_Probits_Probability.html'
+            _plot(fig,filename=image_filename)
+            
+        else:
+            fig.show()
 
 
-    def Expected_Total_LOC(PPResults=None,yaxistype='log',fig_height=600,fig_width=600):
+    def Expected_Total_LOC(PPResults=None,yaxistype='log',PlotMode=1,height=None,width=None,):
         
         '''
         This function plots expected total loss of containment
@@ -198,10 +241,24 @@ class PlotPP():
 
         fig.update_layout(bargap=0.2,
                           plot_bgcolor='white', 
-                          height=fig_height,width=fig_width,
                           yaxis=dict(type=yaxistype,showline=True, linecolor='black',linewidth=2,range=yaxisrange),
                           xaxis=dict(type='linear',showline=True, linecolor='black',linewidth=2))
-        fig.show()
+        if height!=None:
+            fig.update_layout(height=height)
+        if width!=None:
+            fig.update_layout(width=width)        
+
+        if PlotMode==3:
+        
+            return _iplot(fig)
+            
+        elif PlotMode==2:
+            
+            image_filename='Expected_Total_LOC.html'
+            _plot(fig,filename=image_filename)
+            
+        else:
+            fig.show()
 
         # fig = px.bar(x=bins, y=hist, labels={'x':'Totla Loss', 'y':'count'},  opacity=0.75)
         # fig.update_layout(
@@ -216,7 +273,7 @@ class PlotPP():
         # )
         # fig.show()
 
-    def ScenarioProbability(PPResults=None,yaxistype='log',DamageLevel=[],ScenarioList=[],fig_height=600,fig_width=600):
+    def ScenarioProbability(PPResults=None,yaxistype='log',DamageLevel=[],ScenarioList=[],PlotMode=1,height=None,width=None,):
 
         '''
         This function plots Scenarios versus their probability value in all damage levels
@@ -249,16 +306,31 @@ class PlotPP():
                         hoverlabel=dict(bgcolor='gray',font=dict(size=14,color='yellow')))
 
          #set range for lof type
+        yaxisrange=None
         if yaxistype=='log':
             miny=min(list(ScenProb.values()))
             miny=int(_math.log10(miny))-1
             yaxisrange=[miny,0]              #in log type plotly consider the entered values as power of ten
 
-        fig.update_layout(height=fig_height,width=fig_width,
-                        yaxis=dict(type=yaxistype,showline=True, linecolor='black',linewidth=2,title='Probability',titlefont=dict(family='Balto', size=16, color='black'),range=yaxisrange),#type['-', 'linear', 'log', 'date', 'category','multicategory']
+        fig.update_layout(yaxis=dict(type=yaxistype,showline=True, linecolor='black',linewidth=2,title='Probability',titlefont=dict(family='Balto', size=16, color='black'),range=yaxisrange),#type['-', 'linear', 'log', 'date', 'category','multicategory']
                         xaxis=dict(type='linear',showline=True, linecolor='black',linewidth=2,title='Scenario',titlefont=dict(family='Balto', size=16, color='black'),),
                         plot_bgcolor='white', )
-        fig.show()
+        if height!=None:
+            fig.update_layout(height=height)
+        if width!=None:
+            fig.update_layout(width=width)        
+
+        if PlotMode==3:
+        
+            return _iplot(fig)
+            
+        elif PlotMode==2:
+            
+            image_filename='ScenarioProbability.html'
+            _plot(fig,filename=image_filename)
+            
+        else:
+            fig.show()
         # fig.update_xaxes(dict(zerolinecolor="black",
         #                       title='x',
         #                       titlefont=dict(family='Balto', size=18, color='black'),
