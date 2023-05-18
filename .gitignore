@@ -11,3 +11,5 @@ OpenSRANE.egg-info/PKG-INFO
 OpenSRANE.egg-info/requires.txt
 OpenSRANE.egg-info/SOURCES.txt
 OpenSRANE.egg-info/top_level.txt
+setup.py
+setup-Local.py
