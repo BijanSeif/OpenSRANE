@@ -1,5 +1,5 @@
 # /* ****************************************************************** **
-# **    OpeSRANE - Open Software for Risk Assessment of Natech Events   **
+# **   OpenSRANE - Open Software for Risk Assessment of Natech Events   **
 # **                                                                    **
 # **                                                                    **
 # **                                                                    **
