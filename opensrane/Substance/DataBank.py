@@ -187,3 +187,29 @@ class DataBank():
         obj.Specific_Heat_Ratio=1.535                            #[http://dx.doi.org/10.1088/1755-1315/770/1/012065]  Cp/Cv ratio γ or Heat capacity ratio or ratio of specific heats, or Laplace's coefficient
         obj.Liquid_Partial_Pressure_in_Atmosphere=8.477*10**3    #Si unit: N/m2 of Pa
         return obj
+      
+
+      
+    @staticmethod
+    def LPG_Liquefied_Petroleum_Gas(tag):
+        obj=_Material(tag)
+        obj.name="Liquefied Petroleum Gas(LPG)"
+        obj.Molar_Heat_of_Combustion=2356.2*1000                 #SI unit: J/mol   https://rapidn.jrc.ec.europa.eu/substance/liquefied-petroleum-gas-lpg?__data=1350
+        obj.Vapour_Density=1.7642                                #SI unit: kg/m3   https://rapidn.jrc.ec.europa.eu/substance/liquefied-petroleum-gas-lpg?__data=1350
+        obj.Molecular_Weight=51*10**(-3)                         #SI unit: kg/mol  https://rapidn.jrc.ec.europa.eu/substance/liquefied-petroleum-gas-lpg?__data=1350
+        obj.Molar_Volume=86.334*100**(-3)                        #SI unit: m3/mol  https://rapidn.jrc.ec.europa.eu/substance/liquefied-petroleum-gas-lpg?__data=1350
+        obj.Density=592                                          #SI unit: kg/m3   https://rapidn.jrc.ec.europa.eu/substance/liquefied-petroleum-gas-lpg?__data=1350
+        obj.Vapour_Pressure=1430*10**3                           #SI unit: Pa      https://rapidn.jrc.ec.europa.eu/substance/liquefied-petroleum-gas-lpg?__data=1350
+        obj.Specific_Heat_of_Combustion=46.1*10**6               #SI unit: J/kg    https://rapidn.jrc.ec.europa.eu/substance/liquefied-petroleum-gas-lpg?__data=1350
+        obj.Lower_Flammability_Limit=0.035284                    #SI unit: kg/m3   https://rapidn.jrc.ec.europa.eu/substance/liquefied-petroleum-gas-lpg?__data=1350 (2/100x1.7642)=0.035284 
+        obj.Upper_Flammability_Limit=0.158778                    #SI unit: kg/m3   https://rapidn.jrc.ec.europa.eu/substance/liquefied-petroleum-gas-lpg?__data=1350 (9/100x1.7642)=0.158778  
+        obj.Boiling_Point=273-42                                 #SI unit: Kelvin  https://thepetrosolutions.com/properties-lpg-liquified-petroleum-gas/ 
+        obj.Flash_Point=-104.4+273                               #SI unit: Kelvin  https://thepetrosolutions.com/properties-lpg-liquified-petroleum-gas/
+        obj.Specific_Heat_Capacity=1900                          #SI unit: J/kg.k  ChatGPT
+        obj.Specific_Heat_of_Vaporization=426.2*1000             #SI unit: J/kg    https://cameochemicals.noaa.gov/chris/LPG.pdf
+        obj.Molar_Heat_Capacity=84                               #SI unit: J/mol.k ChatGPT
+        obj.Autoignition_Temperature=273+440                     #SI unit: Kelvin  ChatGPT
+        obj.Specific_Heat_Ratio=(1.09+1.13)/2                    #https://instrumentationandcontrol.net/heat-capacity-ratio-table.html (avarage of   Cp/Cv ratio γ or Heat capacity ratio or ratio of specific heats, or Laplace's coefficient
+        obj.Liquid_Partial_Pressure_in_Atmosphere=0              #Si unit: N/m2 of Pa !!!!!Not Sure!!!!!      (in CascalBook for NonBoiling Evaporation case calculations when Boiling_Point>site Temperature and Temprature of pool < Boiling_Point)  
+        
+        return obj
