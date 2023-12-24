@@ -269,7 +269,12 @@ class LqdSprdGaussianGasDisp(_NewClass,_GlobalParameters):
             #Select Proper dt:
             
             # print('(LqdSprdGaussianGasDisp) Boiling Evaporation Case (Select Proper dt:) part')
-            
+
+            #Warning for case that Ts==Tpool and no evaporation will be calculated
+            if Ts==Tpool:
+                warning(f'(LqdSprdGaussianGasDisp Model) for Plant Unit with tag={UnitObject.tag} Tempreature of the liquid inside the Plant unit (Tpool) is'+
+                  f'equal to temprature of soil (Ts), so because of evaporation formula for Boiling Evaporation Case, (Ts-Tpool) becomes equal 0 and there is not gas evaporation! and no explosion or toxic will be calculated!')
+
             Mt=2*TM
             dt=2*dt
             while Mt>=TM:
