@@ -1,5 +1,5 @@
 # /* ****************************************************************** **
-# **    OpeSRANE - Open Software for Risk Assessment of Natech Events   **
+# **   OpenSRANE - Open Software for Risk Assessment of Natech Events   **
 # **                                                                    **
 # **                                                                    **
 # **                                                                    **
@@ -80,7 +80,7 @@ from tqdm import tqdm as _tqdm
                 line_color=Plcollist[Unit.DamageLevel] if (Unit.DamageLevel!=None and Unit.DamageLevel!=0) else ColBound ,fillcolor=ColNodamage if Unit.isdamaged==False else ColDamaged ,)
                 # 'rgba'+Plcollist[Unit.DamageLevel][3:-1]+', 0.1)' if (Unit.DamageLevel!=None and Unit.DamageLevel!=0) else
                 
-            fig.add_trace(_go.Scatter(x=[xc], y=[yc], mode='markers', name='TanksData',showlegend=False,legendgroup='TanksData',
+            fig.add_trace(_go.Scatter(x=[xc], y=[yc], mode='markers', name='UnitsData',showlegend=False,legendgroup='UnitsData',
                                       marker=dict(color=ColBound),
                                      
                                       hoverinfo='text',
@@ -174,7 +174,7 @@ def PlotWindRose(WindRoseTag,Draw_For_Day=True,PlotMode=1, width=None, height=No
 def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressurePointNumber=20,
                 RadiationList=[],RadiationHeight=2,RadiationPointNumber=20, 
                 GasConcentrationlist=[],GasConcentrationHeght=2,ConcentrationPointNumber=10
-                ,raw=False, width=None, height=None):
+                ,raw=False, width=None, height=None, fontsize=18, labelfontsize=18):
     '''
     RadiationList: list of desired radiation values to be plotted 
     RadiationHeight: height of radiation calculations
@@ -207,21 +207,37 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
     UnitObj=_opr.PlantUnits.ObjManager.Objlst
     
     
-    minx=None
-    maxx=None
-    miny=None
-    maxy=None
+    minx=[]
+    maxx=[]
+    miny=[]
+    maxy=[]
     
     ArrowsDict={} #Dictionary that Stores the Damage level arrows
     
     #Plot Tanks
-    minx,maxx,miny,maxy=_PlotTanks(fig,PlotDamagedColor=True,raw=raw)
+    minxx,maxxx,minyy,maxyy=_PlotTanks(fig,PlotDamagedColor=True,raw=raw)
+    if minxx !=None: minx.append(minxx)
+    if maxxx !=None: maxx.append(maxxx)
+    if minyy !=None: miny.append(minyy)
+    if maxyy !=None: maxy.append(maxyy)
 
+    #Plot Spherical Tanks
+    minxx,maxxx,minyy,maxyy=_PlotSphericalTanks(fig,PlotDamagedColor=True,raw=raw)
+    if minxx !=None: minx.append(minxx)
+    if maxxx !=None: maxx.append(maxxx)
+    if minyy !=None: miny.append(minyy)
+    if maxyy !=None: maxy.append(maxyy)
+
+    minx=min(minx)
+    maxx=max(maxx)
+    miny=min(miny)
+    maxy=max(maxy)
     
+        
     for Unit in _tqdm(UnitObj,desc='Adding Units Data'):
         
-        # Onground Tanks
-        if Unit.__class__==_opr.PlantUnits.ONGStorage:
+        # Onground Tanks and spherical
+        if Unit.__class__==_opr.PlantUnits.ONGStorage or Unit.__class__==_opr.PlantUnits.SphericalTank:
 
             tag=Unit.tag
             name=Unit.__class__.__name__
@@ -480,10 +496,10 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
 
        
         
-    # Add single TanksData for legend
+    # Add single UnitsData for legend
     fig.add_trace(_go.Scatter(x=[None], y=[None], mode='markers',
                               marker=dict(size=8, color=ColBound),
-                              name='TanksData',showlegend=True,legendgroup='TanksData',))
+                              name='UnitsData',showlegend=True,legendgroup='UnitData',))
                               
     # Add single liquid dispersion for legend
     if raw==False: fig.add_trace(_go.Scatter(x=[None], y=[None], mode='lines',
@@ -562,8 +578,8 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
         maxy=yc+L2/2
             
             
-    fig.update_xaxes(title_text='x',showline=True,linewidth=2, linecolor='black',range=[minx-0.05*L1, maxx+0.05*L1],title_font=dict(size=18, family='Courier', color='black')) #mirror=True
-    fig.update_yaxes(title_text='y',showline=True,linewidth=2, linecolor='black',range=[miny-0.05*L2, maxy+0.05*L2],title_font=dict(size=18, family='Courier', color='black'))#,mirror=True
+    fig.update_xaxes(title_text='x',showline=True,linewidth=2, linecolor='black',range=[minx-0.05*L1, maxx+0.05*L1],title_font=dict(size=fontsize, family='Courier', color='black'), tickfont=dict(size=labelfontsize)) #mirror=True
+    fig.update_yaxes(title_text='y',showline=True,linewidth=2, linecolor='black',range=[miny-0.05*L2, maxy+0.05*L2],title_font=dict(size=fontsize, family='Courier', color='black'), tickfont=dict(size=labelfontsize))#,mirror=True
     
     if height!=None:
         fig.update_layout(height=height)
@@ -582,7 +598,7 @@ def PlotUnits2D(PlotMode=1,OverPressureList=[],OverPressureHeight=2, OverPressur
     else:
         fig.show(config = dict({'scrollZoom': True}))
 
-def PlotIndividualRisk( PlotMode=1, NodesGroupTag=1, NodesProbabilityList=[], ContorList=[], width=None, height=None):
+def PlotIndividualRisk( PlotMode=1, NodesGroupTag=1, NodesProbabilityList=[], ContorList=[], width=None, height=None, xrange=[], yrange=[], fontsize=18, labelfontsize=18,):
     '''
     NodesGroupTag: Tag of the nodesgroup that want to see its damage probability
     NodesProbabilityList: list of the nodes damage probability values. 
@@ -596,11 +612,34 @@ def PlotIndividualRisk( PlotMode=1, NodesGroupTag=1, NodesProbabilityList=[], Co
     #Initial Figure Settings
     fig = _go.Figure()
     fig.update_layout(plot_bgcolor='white')
-
-
-    #Plot Tanks
-    minx,maxx,miny,maxy=_PlotTanks(fig,PlotDamagedColor=False)
     
+
+    minx=[]
+    maxx=[]
+    miny=[]
+    maxy=[]
+    
+    
+    #Plot Tanks
+    minxx,maxxx,minyy,maxyy=_PlotTanks(fig,PlotDamagedColor=False)
+    if minxx !=None: minx.append(minxx)
+    if maxxx !=None: maxx.append(maxxx)
+    if minyy !=None: miny.append(minyy)
+    if maxyy !=None: maxy.append(maxyy)
+
+    #Plot Spherical Tanks
+    minxx,maxxx,minyy,maxyy=_PlotSphericalTanks(fig,PlotDamagedColor=False)
+    if minxx !=None: minx.append(minxx)
+    if maxxx !=None: maxx.append(maxxx)
+    if minyy !=None: miny.append(minyy)
+    if maxyy !=None: maxy.append(maxyy)
+
+    minx=min(minx)
+    maxx=max(maxx)
+    miny=min(miny)
+    maxy=max(maxy)
+
+
 
     # Draw NodesGroup Individual risk
     tag=NodesGroupTag
@@ -682,8 +721,8 @@ def PlotIndividualRisk( PlotMode=1, NodesGroupTag=1, NodesProbabilityList=[], Co
         maxy=yc+L2/2
             
             
-    fig.update_xaxes(title_text='x',showline=True,linewidth=2, linecolor='black',range=[minx-0.05*L1, maxx+0.05*L1],title_font=dict(size=18, family='Courier', color='black')) #mirror=True
-    fig.update_yaxes(title_text='y',showline=True,linewidth=2, linecolor='black',range=[miny-0.05*L2, maxy+0.05*L2],title_font=dict(size=18, family='Courier', color='black'))#,mirror=True
+    fig.update_xaxes(title_text='x',showline=True,linewidth=2, linecolor='black',range=[minx-0.05*L1, maxx+0.05*L1] if xrange==[] else xrange,title_font=dict(size=fontsize, family='Courier', color='black'), tickfont=dict(size=labelfontsize)) #mirror=True
+    fig.update_yaxes(title_text='y',showline=True,linewidth=2, linecolor='black',range=[miny-0.05*L2, maxy+0.05*L2] if yrange==[] else yrange,title_font=dict(size=fontsize, family='Courier', color='black'), tickfont=dict(size=labelfontsize))#,mirror=True
 
     if height!=None:
         fig.update_layout(height=height)
@@ -719,7 +758,7 @@ def _PlotTanks(fig,PlotDamagedColor=True,raw=False):
     #Get All Defined Plant Units
     UnitObj=_opr.PlantUnits.ObjManager.Objlst
     
-    
+    #Boundary of elements
     minx=None
     maxx=None
     miny=None
@@ -767,7 +806,7 @@ def _PlotTanks(fig,PlotDamagedColor=True,raw=False):
                 # 'rgba'+Plcollist[Unit.DamageLevel][3:-1]+', 0.1)' if (Unit.DamageLevel!=None and Unit.DamageLevel!=0) else
 
             #Add Tanks Center Point and Data                
-            fig.add_trace(_go.Scatter(x=[xc], y=[yc], mode='markers', name='TanksData',showlegend=False,legendgroup='TanksData',
+            fig.add_trace(_go.Scatter(x=[xc], y=[yc], mode='markers', name='UnitsData',showlegend=False,legendgroup='UnitsData',
                                       marker=dict(color=ColBound),
                                      
                                       hoverinfo='text',
@@ -785,8 +824,91 @@ def _PlotTanks(fig,PlotDamagedColor=True,raw=False):
                                      )
                          )
     return minx,maxx,miny,maxy
+
+def _PlotSphericalTanks(fig,PlotDamagedColor=True,raw=False):
     
-def PlotFragilities(StdNumber=3,NPoints=100, FragilityTagList=[],PlotMode=1, width=None, height=None):
+    #raw: Boolean that if consider as True means that just only plot the plant without showing any damages or other events.
+
+    Plcollist=_PLcols.DEFAULT_PLOTLY_COLORS*20 #List of plotly Colors
+    Plcollist=['rgb(255, 0, 5)']+Plcollist[1:3]+Plcollist[4:]
+
+    ColBound=f'rgba(0, 0, 0,1)' # Boundary Colors
+    ColNodamage=f'rgba(250, 250, 250,0.2)' #Undamaged Colors
+    ColDamaged=f'rgba(255, 0, 5,0.2 )' #Damaged Colors
+    
+    
+    
+    #Get All Defined Plant Units
+    UnitObj=_opr.PlantUnits.ObjManager.Objlst
+    
+    #Boundary of elements
+    minx=None
+    maxx=None
+    miny=None
+    maxy=None
+    
+    for Unit in _tqdm(UnitObj,desc='Plotting Spherical Tanks'):
+        
+        # Onground Tanks
+        if Unit.__class__==_opr.PlantUnits.SphericalTank:
+            
+            # Get Geometry and Location Data and the Other required data
+            xc=Unit.Hlocalcoord
+            yc=Unit.Vlocalcoord
+            
+            D=Unit.d_Storage
+            
+            tag=Unit.tag
+            name=Unit.__class__.__name__
+            outFlowname=Unit.OutFlowModelname
+            DispSprdModelname=Unit.DispersionSpreadModelname
+            DispSprdObj=Unit.DispersionSpreadModelObject
+          
+            PhysicalObjname=Unit.PhysicalEffectModelname
+            PhysicalObj=Unit.PhysicalEffectObject
+            
+           # Set The boundary
+            if minx==None:
+                minx=xc-D/2
+                maxx=xc+D/2
+                miny=yc-D/2
+                maxy=yc+D/2
+
+            else:
+                if xc-D/2<minx: minx=xc-D/2
+                if xc+D/2>maxx: maxx=xc+D/2
+                if yc-D/2<miny: miny=yc-D/2
+                if yc+D/2>maxy: maxy=yc+D/2
+                
+           
+            # Add Tank Shape
+            fig.add_shape(type="circle", xref="x", yref="y", name=name,
+                x0=xc-D/2, y0=yc-D/2, x1=xc+D/2, y1=yc+D/2,
+                
+                line_color=ColBound ,fillcolor='rgba'+Plcollist[Unit.DamageLevel][3:-1]+', 0.3)' if (Unit.isdamaged==True and PlotDamagedColor==True and Unit.DamageLevel!=None and raw==False) else ColNodamage,)
+                # 'rgba'+Plcollist[Unit.DamageLevel][3:-1]+', 0.1)' if (Unit.DamageLevel!=None and Unit.DamageLevel!=0) else
+
+            #Add Tanks Center Point and Data                
+            fig.add_trace(_go.Scatter(x=[xc], y=[yc], mode='markers', name='UnitsData',showlegend=False,legendgroup='UnitsData',
+                                      marker=dict(color=ColBound),
+                                     
+                                      hoverinfo='text',
+                                      hovertext=f'{name} (tag= {tag}) and Substance= {_opr.Substance.ObjManager[Unit.SubstanceTag].name} (tag= {Unit.SubstanceTag})'+
+                                      f'<br><br>Diameter= {D} \t <br>Damage Source= {Unit.DamageSource} \t <br>with Damage SourceTag= {Unit.DamageSourceTag} \t <br>Damage Level= {Unit.DamageLevel}, Damage Source Type= {Unit.DamageSourceType}, Damage Source Dose= {Unit.DamageSourceDose}' +
+                                      f'<br><br>{"OutFlowModel: <br>"+outFlowname if outFlowname!=None else ""}' +
+                                      f'<br><br>{"DispersionSpreadModel: <br>"+DispSprdModelname if DispSprdModelname!=None else ""}' +
+                                      f'<br><br>{"PhysicalEffectModel: <br>"+PhysicalObjname if PhysicalObjname!=None else ""}',
+                                      hoverlabel=dict(bgcolor=f'rgba(0, 0, 0, 1)',
+                                                bordercolor=f'rgba(255, 0, 0, 1)',
+                                                font=dict(family='Balto',           #or other font family
+                                                size=14,                            #or other size
+                                                color=f'rgba(255, 255, 255, 1)')
+                                                                ),
+                                     )
+                         )
+    return minx,maxx,miny,maxy
+
+def PlotFragilities(StdNumber=3,NPoints=100, FragilityTagList=[],PlotMode=1, width=None, height=None, fontsize=18, labelfontsize=18, XTitle='Random Variable'):
     '''
     All Fragilities that are defined by the user, Are drawn using This Function
     FragilityTagList = list of fragilities tag that user want to plot
@@ -843,8 +965,8 @@ def PlotFragilities(StdNumber=3,NPoints=100, FragilityTagList=[],PlotMode=1, wid
     if x!=[]: #Means that we have Fragilities
     
         #Plotly Settings ---------------------------------------------------------------------------------------------------------------------------------------
-        fig.update_xaxes(title_text='Random Variables',showline=True,linewidth=2, linecolor='black',mirror=True,range=[0, max(x)],title_font=dict(size=18, family='Courier', color='black'),showspikes=True)
-        fig.update_yaxes(title_text='Probability',showline=True,linewidth=2, linecolor='black',mirror=True,range=[0, 1.05],title_font=dict(size=18, family='Courier', color='black'),showspikes=True)
+        fig.update_xaxes(title_text=XTitle,showline=True,linewidth=2, linecolor='black',mirror=True,range=[0, max(x)],title_font=dict(size=fontsize, family='Courier', color='black'),showspikes=True, tickfont=dict(size=labelfontsize))
+        fig.update_yaxes(title_text='Probability',showline=True,linewidth=2, linecolor='black',mirror=True,range=[0, 1.05],title_font=dict(size=fontsize, family='Courier', color='black'),showspikes=True, tickfont=dict(size=labelfontsize))
         fig.update_layout(title={'text': "Fragilities",'y':0.9,'x':0.13,'xanchor': 'center', 'yanchor': 'top'},height=800)
         fig.update_layout(legend=dict(yanchor="top",y=0.99,xanchor="left",x=0.01,bordercolor="Black", borderwidth=2))
         
