@@ -48,10 +48,11 @@ class Simple_fire_point_source(_NewClass,_GlobalParameters):
     
     minf: is burning velocity for an infinite diameter pool. some sample values are presented in table 3.8 cascal book
     k: constant according table 3.8 cascal book
+    Radiative_Fraction=Radiation factor of heat of combustion, This value will modify the heat of combustion of material. This factor will be multiply in specific heat of combustion of material or substace. (According to Rapid-N docs: https://publications.jrc.ec.europa.eu/repository/bitstream/JRC130323/JRC130323_01.pdf )
     '''
     Title='Fire Point Source Physical Effect'
     
-    def __init__(self,tag,minf=0.055,k=1.5):
+    def __init__(self,tag,minf=0.055,k=1.5,Radiative_Fraction=1):
         
         #---- Fix Part for each class __init__ ----
         ObjManager.Add(tag,self)
@@ -61,8 +62,9 @@ class Simple_fire_point_source(_NewClass,_GlobalParameters):
         
         _GlobalParameters.__init__(self)
         
-        self.minf=minf      # minf is burning velocity for an infinite diameter pool. some sample values are presented in table 3.8 cascal book 
-        self.k=k            # k: constant according table 3.8 cascal book
+        self.R=Radiative_Fraction   # Radiative_Fraction that will be multiply in specific heat fo combustion
+        self.minf=minf              # minf is burning velocity for an infinite diameter pool. some sample values are presented in table 3.8 cascal book 
+        self.k=k                    # k: constant according table 3.8 cascal book
 
         self.wipeAnalysis()
     
@@ -118,7 +120,10 @@ class Simple_fire_point_source(_NewClass,_GlobalParameters):
         if DeltaHc==None:
             warning(f'(Fire_Point_Source) for Plant unit {UnitObject.tag} because for its substance with tag {UnitObject.SubstanceTag} Specific_Heat_of_Combustion has not been defined')
             return None
-
+        
+        #Modify heat of combustion by multipling in Radiative_Fraction
+        DeltaHc=DeltaHc*self.R
+        
         Qr=Ettarad*mprime*DeltaHc                                    # 3.14 cascal book (combustion energy that is transferred as thermal radiation)
         
         Pwa=_math.exp(23.18986-3816.42/(Ta-46.13))                   # 3.19 cascal book  (saturated water vapor pressure at the atmospheric temperature)
