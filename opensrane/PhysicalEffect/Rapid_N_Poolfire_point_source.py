@@ -39,7 +39,7 @@ import math as _math
 import random as _rnd
 import opensrane as _opr
 
-class Rapid_N_PoolPoolFire_Point_Source(_NewClass,_GlobalParameters):
+class Rapid_N_Poolfire_point_source(_NewClass,_GlobalParameters):
     
     '''
     In this module, fire point source according to documentation of Rapid-N is modeled.
