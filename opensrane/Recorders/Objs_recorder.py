@@ -67,7 +67,19 @@ class Objs_recorder(_NewClass):
         
 
         self.RecordedList=[] #List that store all recorded objects inside in each happend scenario as a dictionary and send it to pickle to save in file
+        
         self.RecordCounter=0
+        
+        
+        #If file append be True then code should find the number of maximum existing saved file and create new files with number greater than the founded number
+        self.MaxExistSavedfileIndex=0
+        if fileAppend==True:
+            
+            for file in _os.listdir():
+                if file[-3:]=='OPR' and file[:len(filename)]==filename and len(file)>=len(filename+'.OPR'):
+                    num=file[len(filename):-4]
+                    if num!='':
+                        if int(num)>self.MaxExistSavedfileIndex: self.MaxExistSavedfileIndex=int(num)
         
         
     def Record(self):
@@ -97,7 +109,7 @@ class Objs_recorder(_NewClass):
             
         #Create log file to record number of the analysis
         with open(self.filename+str(fileindex)+'.Log', "w") as f:
-            f.write(f'Number of Analysis: {self.RecordCounter}')
+            f.write(f'Number of Analysis: {self.RecordCounter}\nNumber of Scenarios in this log: {len(self.RecordedList)}')
         
         #Set the file name
         filename=self.filename+str(fileindex)+'.OPR'
@@ -147,14 +159,15 @@ class Objs_recorder(_NewClass):
         
         #Merge Log files-------------------------------------------------------------------------------------
         AnalyzeNumber=0
+        ScenarioNumber=0
         for file in _os.listdir():
             if file[-3:]=='Log' and file[:len(filename)]==filename and len(file)>len(filename+'.Log'):
                 
                 # Read file
                 with open(file, 'r') as fileObj:
                     number=fileObj.read()
-                    number=number.split()[-1]
-                    AnalyzeNumber =AnalyzeNumber +  int(number)
+                    number=number.split()[3],number.split()[-1]
+                    AnalyzeNumber, ScenarioNumber =AnalyzeNumber +  int(number[0]), ScenarioNumber +  int(number[1])
                 #Remove file
                 _os.remove(file)        
 
@@ -166,12 +179,12 @@ class Objs_recorder(_NewClass):
                 # Read Main file
                 with open(file, 'r') as fileObj:
                     number=fileObj.read()
-                    number=number.split()[-1]
-                    AnalyzeNumber =AnalyzeNumber +  int(number)
+                    number=number.split()[3],number.split()[-1]
+                    AnalyzeNumber, ScenarioNumber =AnalyzeNumber +  int(number[0]), ScenarioNumber +  int(number[1])
                 
         #Write to file
         with open(file, 'w') as fileObj:
-            fileObj.write(str(AnalyzeNumber))
+            fileObj.write(f'Number of Analysis: {AnalyzeNumber}\nNumber of Scenarios in this log: {ScenarioNumber}')
 
 
     def _ResetRecorder(self):
@@ -202,19 +215,22 @@ class Objs_recorder_loader():
         Then you can Call each scenario using load1ScenarioOfBank method
         
         '''
-        file=filename+".OPR"
-        if file not in _os.listdir():
-            print(f'{file} not found!')
-            return -1
 
         global _ScenarioBank
         
+        _ScenarioBank=[]
         
-        # Read file
-        with open(file, 'rb') as fileObj:
-            loaddict=_pickle.load(fileObj)
-            _ScenarioBank =  loaddict if type(loaddict)==list else []
+        for file in _os.listdir():
+            if file[-3:]=='OPR' and file[:len(filename)]==filename:
+            
+                # Read file
+                with open(file, 'rb') as fileObj:
+                    loaddict=_pickle.load(fileObj)
+                    if type(loaddict)==list: _ScenarioBank =  _ScenarioBank + loaddict 
                     
+        if _ScenarioBank==[]:
+            print(f'{file} not found!')
+            return -1
             
         return len(_ScenarioBank)
       
