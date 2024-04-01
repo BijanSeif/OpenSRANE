@@ -47,12 +47,15 @@ class ScenarioAnalyze():
     
     anydamage=None                      #A parameter that shows does the analysis encounter with any damage or not
 
-    def UniAnalyze(SavetoFile=True,fileindex=0):
+    def UniAnalyze(SavetoFile=True,fileindex=0, MergeSavedFiles=False):
         
         '''
         SavetoFile: For recorder objects it is emphasize that record data to a file or not (For unianalysis it is yes but for multiple analysis it should be no till after finishing the analysis in one time data be stored) (For objs recorder it will be save and it doesn't have any effect on them)
 
-        fileindex: is an integer that will be add to the end of the filename to save in seperate file (For unianalysis it should be 0)
+        fileindex: is an integer that will be add to the end of the filename to save recorded scenarios in seperate file
+        
+        MergeSavedFiles: If set this option into True, When analysis finished all files will be merge into one file and for huge files it take so_
+                         much memory and time!
 
         '''
         
@@ -121,12 +124,12 @@ class ScenarioAnalyze():
         #Save the recorded data just for recorder objects
         if SavetoFile==True:
             [obj.SaveToFile(fileindex) for obj in _opr.Recorders.ObjManager.Objlst]
-            [obj._MergeAndClear() for obj in _opr.Recorders.ObjManager.Objlst]
+            if MergeSavedFiles==True: [obj._MergeAndClear() for obj in _opr.Recorders.ObjManager.Objlst]
         
         
         
         
-    def MultiAnalysis(AnalysisNumber=100,isParallel=False,fileindex=0):
+    def MultiAnalysis(AnalysisNumber=100,isParallel=False,fileindex=0, MergeSavedFiles=False):
         
         '''
         This function implement multiple scenario analysis and record results
@@ -134,6 +137,9 @@ class ScenarioAnalyze():
         ResetRecorder: Does the function clear the recorder file and record scenarios from zero or add new analysed scenarios to the end of the current file
         
         fileindex: is an integer that will be add to the end of the filename to save in seperate file
+        
+        MergeSavedFiles: If set this option into True, When analysis finished all files will be merge into one file and for huge files it take so_
+                         much memory and time!
         '''
         
         #Do the analysis
@@ -147,9 +153,9 @@ class ScenarioAnalyze():
         
         if isParallel==False:
             #Merge all created files and remove them and just put the filnal file
-            [obj._MergeAndClear() for obj in _opr.Recorders.ObjManager.Objlst] 
+            if MergeSavedFiles==True: [obj._MergeAndClear() for obj in _opr.Recorders.ObjManager.Objlst]
 
-    def MultiParallel(AnalysisNumber=100, NumberOfProcessors=3, RecorderSaveStep=5000):
+    def MultiParallel(AnalysisNumber=100, NumberOfProcessors=3, RecorderSaveStep=5000, MergeSavedFiles=False):
         
         '''
         
@@ -157,6 +163,9 @@ class ScenarioAnalyze():
         
         RecorderSaveStep: if user didn't define Objs_recorder then the RecorderSaveStep will be use as save step But_
                           if Objs_recorder were define its save step will be consider as savestep
+                          
+        MergeSavedFiles: If set this option into True, When analysis finished all files will be merge into one file and for huge files it take so_
+                         much memory and time!
         '''
 
         #For Recorder objects if append is false the append should be True 
@@ -170,8 +179,9 @@ class ScenarioAnalyze():
             if obj.__class__.__name__=='Objs_recorder':
                 if obj.fileAppend==False:
                     obj.fileAppend==True
-                    obj._ResetRecorder()            
-
+                    obj._ResetRecorder()   
+                    
+        MaxExistSavedfileIndex=obj.MaxExistSavedfileIndex
 
         #Set SaveStep
         SaveStep=None
@@ -198,11 +208,11 @@ class ScenarioAnalyze():
         
         #Set Analyze
         print('Analysis Number of each core: ',AnalyzeList)
-        pool.starmap(_opr.Analyze.ScenarioAnalyze.MultiAnalysis, [(AnalyseNumber,True,fileindex) for fileindex,AnalyseNumber in enumerate(AnalyzeList)])
+        pool.starmap(_opr.Analyze.ScenarioAnalyze.MultiAnalysis, [(AnalyseNumber,True,fileindex+MaxExistSavedfileIndex+1) for fileindex,AnalyseNumber in enumerate(AnalyzeList)])
         
         pool.close()
 
         #Merge all created files and remove them and just put the filnal file
-        [obj._MergeAndClear() for obj in _opr.Recorders.ObjManager.Objlst] 
+        if MergeSavedFiles==True: [obj._MergeAndClear() for obj in _opr.Recorders.ObjManager.Objlst] 
 
 

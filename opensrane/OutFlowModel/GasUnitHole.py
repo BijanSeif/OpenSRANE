@@ -130,6 +130,13 @@ class GasUnitHole(_NewClass,_GlobalParameters):
                   f'So the code do not calculate any Gas Outflow (GasUnitHole Model) for this Plant Unit')
             return -1
         
+        #Check P0 and Pa
+        if  P0<=Pa:
+            warning(f'Pressure of Unit with tag={UnitObject.tag} is equal to {P0} and is equal or less than the ambient Pressure {Pa}! '+
+                  f'So the code do not calculate any Gas Outflow (GasUnitHole Model) for this Plant Unit')
+            return -1      
+            
+        
         Gamma=SubstanceObject.Specific_Heat_Ratio
         #Check if Gamma has not been assign to the material
         if Gamma==None:

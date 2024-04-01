@@ -154,7 +154,6 @@ class Rapid_N_Poolfire_point_source(_NewClass,_GlobalParameters):
             return None
         Xcp,Ycp=PoolCenter[-1]
         Apool=PoolRadius[-1]**2*_math.pi
-        print('Apool=',Apool)
         
         SiteObject=_opr.Sites.ObjManager[UnitObject.SiteTag]
         if SiteObject==None:
