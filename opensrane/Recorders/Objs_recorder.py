@@ -206,6 +206,211 @@ class Objs_recorder_loader():
     
     
     _ScenarioBank={}
+    _ScenarioFile={}
+    _LoadedFile=None
+    
+    @staticmethod
+    def ReturnFileIndexScenariosDict(filename):
+        '''
+        This Function returns a dictionary with following structure
+        {filename:{'Analysis Number Range':The range of the analysis number that has been done in this file, 
+                   'Scenario Number Range':The range of recorded scenarios that exist in this file}}
+        
+        So, in this file we will see the Analysis that has been done for the file and also the recorded scenario range for each file.
+        
+        Scenarios are numbering here according to the name of their recorded or saved file and the order of them is not important and order of the files are determined by _os.listdir() command
+        '''
+        Results={}     
+
+        
+        AnalyzeNumber=0
+        ScenarioNumber=0
+        for file in _os.listdir():
+            if file[-3:]=='Log' and file[:len(filename)]==filename and len(file)>len(filename+'.Log'):
+            
+                #Read logo file and update it
+                with open(file, "r") as fileObj:
+
+                    #Read file and export data
+                    number=fileObj.read()
+                
+                number=number.split()[3],number.split()[-1]
+                Results=Results | {file[:-4]:{'Analysis Number Range':(AnalyzeNumber+1  , AnalyzeNumber  +  int(number[0])), 
+                                         'Scenario Number Range':(ScenarioNumber+1 , ScenarioNumber +  int(number[1]))}}
+                               
+                AnalyzeNumber, ScenarioNumber = AnalyzeNumber +  int(number[0]), ScenarioNumber +  int(number[1])
+        
+        
+        if Results=={}:
+            print(f'{filename} not found!')
+            return -1  
+            
+        return Results
+
+    @staticmethod
+    def TotalNumberOfScenarios(filename):
+        '''
+        This static method or function returns the maximum number of recorded or created scenarios number (Total number of scenarios_
+        '''
+        #get dictionary of the files and the number od analysis and scenarios boundary for each file
+        FilesAnaScenNumbers=Objs_recorder_loader.ReturnFileIndexScenariosDict(filename)
+        
+        return max([max(file['Scenario Number Range']) for file in FilesAnaScenNumbers.values()])
+
+
+    @staticmethod
+    def load1RecordedScenario(ScenarioNumber, filename):
+        '''
+        This function returns all recorded objects of Scenario with number of ScenarioNumber to the memory
+        if no recorded data will be available in the current recording object or in the filename, 
+        it retunes empty
+        
+        This function is proper for just one call and not proper for multiple calls
+        
+        '''
+        #Check if the ScenarioNumber was less than 1 then comment
+        if ScenarioNumber<1:
+            print('Scenarios number start from 1!')
+            return -1
+        
+        #Before any load all objects should be delete
+        _opr.wipe()
+        
+        #get dictionary of the files and the number od analysis and scenarios boundary for each file
+        FilesAnaScenNumbers=Objs_recorder_loader.ReturnFileIndexScenariosDict(filename)
+        
+        #Check if file exist
+        if FilesAnaScenNumbers==-1:
+            return -1
+            
+        #Get the maximum created scenario number
+        MaxCreatedScenNum=Objs_recorder_loader.TotalNumberOfScenarios(filename)
+            
+        scenarioDict={}
+        
+        
+        #check if ScenarioNumber is not greater than the recorded scenarios
+        if MaxCreatedScenNum<ScenarioNumber:
+            print(f"Entered Scenario Tag ({ScenarioNumber}) is greater than maximum recorded scenario so so nothing loaded")
+            return -1
+            
+        
+        for filename,fileresult in FilesAnaScenNumbers.items():
+            
+            if ScenarioNumber>fileresult['Scenario Number Range'][1]:continue
+            
+            FileScenarioRange=FilesAnaScenNumbers[filename]['Scenario Number Range']
+            ScenarioNumber=ScenarioNumber-FileScenarioRange[0]
+            
+            # Read file and load scenario
+            with open(filename+".OPR", 'rb') as fileObj:
+
+                loadlist=_pickle.load(fileObj)
+
+                if type(loadlist)==list:
+                    scenarioDict= loadlist[ScenarioNumber]
+            break
+        
+
+        if scenarioDict=={}:
+            print(f'No Scenario was recorded in {filename} file')
+            return -1
+        
+        #feed the loaded scenario to subpackages
+        for SubPackname,SubPackobj in _opr.Misc.GetModules():
+            
+            if SubPackname!='Recorders' and SubPackname in scenarioDict.keys():
+                #replace each subpackage Objlst, Taglst, TagObjDict with what are available in the recorded scenario
+                SubPackobj.ObjManager.Objlst=scenarioDict[SubPackname] if scenarioDict!={} else []
+                SubPackobj.ObjManager.Taglst=[obj.tag for obj in SubPackobj.ObjManager.Objlst]
+                SubPackobj.ObjManager.TagObjDict={obj.tag:obj for obj in SubPackobj.ObjManager.Objlst}
+            
+        return 0    
+
+
+    @staticmethod
+    def load1ScenarioItt(ScenarioNumber, filename):
+        '''
+        This function returns all recorded objects of Scenario with number ScenarioNumber to the memory
+        if no recorded data will be available in the current recording object or in the filename, 
+        it retunes empty
+        
+        This function is proper for itterations and not proper for just one call
+        
+        '''
+        
+        #Check if the ScenarioNumber was less than 1 then comment
+        if ScenarioNumber<1:
+            print('Scenarios number start from 1!')
+            return -1
+            
+        #Before any load all objects should be delete
+        # _opr.wipe() #But it Decrease Speed Widely
+        
+        global _ScenarioFile    #it saves all scenarios of File with index _LoadedFile
+        global _LoadedFile      #index of the loaded file
+        if '_LoadedFile' not in globals(): _LoadedFile=None
+        
+        #get dictionary of the files and the number od analysis and scenarios boundary for each file
+        FilesAnaScenNumbers=Objs_recorder_loader.ReturnFileIndexScenariosDict(filename)
+        
+        #Check if file exist
+        if FilesAnaScenNumbers==-1:
+            return -1
+            
+        #Get the maximum created scenario number
+        MaxCreatedScenNum=Objs_recorder_loader.TotalNumberOfScenarios(filename)
+            
+        scenarioDict={}
+        
+
+        #check if ScenarioNumber is not greater than the recorded scenarios
+        if MaxCreatedScenNum<ScenarioNumber:
+            print(f"Entered Scenario Tag ({ScenarioNumber}) is greater than maximum recorded scenario so nothing loaded")
+            return -1
+            
+        
+        for filename,fileresult in FilesAnaScenNumbers.items():
+            
+            if ScenarioNumber>fileresult['Scenario Number Range'][1]:continue #Means that Targer scenario is not in the file
+
+            FileScenarioRange=FilesAnaScenNumbers[filename]['Scenario Number Range']
+            ScenarioNumber=ScenarioNumber-FileScenarioRange[0]
+            
+            if filename!=_LoadedFile: #Means that the proper file (File that the scenario is located in) is not loaded in the memory
+                _LoadedFile=filename
+                print('File',_LoadedFile, end=' ')
+                
+                # Read file and load scenario
+                with open(filename+".OPR", 'rb') as fileObj:
+                    _ScenarioFile=_pickle.load(fileObj)
+                    print('loaded.',end=' ')
+            
+            if type(_ScenarioFile)==list:
+                scenarioDict= _ScenarioFile[ScenarioNumber]
+                
+            break
+        
+
+        if scenarioDict=={}: 
+            return -1
+        
+        #feed the loaded scenario to subpackages
+        for SubPackname,SubPackobj in _opr.Misc.GetModules():
+            
+            if SubPackname!='Recorders' and SubPackname in scenarioDict.keys():
+                #replace each subpackage Objlst, Taglst, TagObjDict with what are available in the recorded scenario
+                SubPackobj.ObjManager.Objlst=scenarioDict[SubPackname] if scenarioDict!={} else []
+                SubPackobj.ObjManager.Taglst=[obj.tag for obj in SubPackobj.ObjManager.Objlst]
+                SubPackobj.ObjManager.TagObjDict={obj.tag:obj for obj in SubPackobj.ObjManager.Objlst}
+            
+        return 0    
+
+
+
+
+
+#Bank Part ---------------------------------------------------------------------------------------------------------------
 
     @staticmethod
     def loadScenarioBank(filename):
