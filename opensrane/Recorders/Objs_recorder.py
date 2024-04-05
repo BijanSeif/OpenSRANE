@@ -482,7 +482,6 @@ class Objs_recorder_loader():
         with open(filename+".OPR", 'rb') as fileObj:
 
             loadDict=_pickle.load(fileObj)
-            print(loadDict)
 
             if type(loadDict)==dict:
                 scenarioDict= loadDict
@@ -531,7 +530,7 @@ class Objs_recorder_loader():
       
       
     @staticmethod
-    def load1ScenarioOfBank(ScenarioTag):
+    def load1ScenarioOfBank(ScenarioNumber):
         
         '''
         This function Loads one scenario from loaded bank
@@ -544,12 +543,17 @@ class Objs_recorder_loader():
     
         global _ScenarioBank
 
+        #Check if the ScenarioNumber was less than 1 then comment
+        if ScenarioNumber<1:
+            print('Scenarios number start from 1!')
+            return -1
+            
         #If entered tag be greater than what is recorded
-        if ScenarioTag>len(_ScenarioBank)-1 : 
-            print(f'Entered scenario tag ({ScenarioTag}) is greater than the maximum recorded tag ({len(_ScenarioBank)-1})')
+        if ScenarioNumber>len(_ScenarioBank) : 
+            print(f'Entered scenario tag ({ScenarioNumber}) is greater than the maximum recorded tag ({len(_ScenarioBank)}) so nothing loaded')
             return -1
         
-        scenarioDict= _ScenarioBank[ScenarioTag]
+        scenarioDict= _ScenarioBank[ScenarioNumber-1]
         
         #feed the subpackages
         for SubPackname,SubPackobj in _opr.Misc.GetModules():
