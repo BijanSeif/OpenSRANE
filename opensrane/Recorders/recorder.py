@@ -299,7 +299,12 @@ class recorder(_NewClass):
 
         #Set the Recorder Counter to zero
         self.AnalyzeCounter=0
-
+    
+    def OtherSaveOnce(self):
+        #Just because such method exist for objs_recorder, so here also should exist to avoid error when calling all objects (For recorder it doesn't do anything
+        pass
+    
+    
     def _Deletefile(self):
         
         files=_os.listdir()
