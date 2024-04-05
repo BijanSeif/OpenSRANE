@@ -88,16 +88,16 @@ class ObjsRecorderPP():
         
 
         #Get Total Number of Analysis
-        with open(file, 'r') as fileObj:
-            TotalScenario=fileObj.read()
-            TotalScenario=int(TotalScenario.split()[-1])
+        TotalScenario=_opr.Recorders.Objs_recorder_loader.TotalNumberOfAnalysis(ObjsRecorer_Filename)
 
+        #Load other subpackages that are not recorded by user
+        _opr.Recorders.Objs_recorder_loader.LoadOtherSubPackages(ObjsRecorer_Filename)
 
         #Load Scenario Bank
         NumberOfScenarios=_opr.Recorders.Objs_recorder_loader.loadScenarioBank(ObjsRecorer_Filename)
 
         #Star Opening all recorded files to export data
-        for scenariotag in range(NumberOfScenarios):
+        for scenariotag in range(1,NumberOfScenarios+1):
 
             #Load Scenario
             _opr.Recorders.Objs_recorder_loader.load1ScenarioOfBank(scenariotag)
@@ -111,7 +111,7 @@ class ObjsRecorderPP():
             NodesGroupOverPressureList.append({NG.tag:NG.OverPressure_Intensity for NG in _opr.NodesGroups.ObjManager.Objlst})
             NodesGroupOVPProbitList.append({NG.tag:NG.OverPressure_Probit for NG in _opr.NodesGroups.ObjManager.Objlst})
             NodesGroupRadProbitList.append({NG.tag:NG.Radiation_Probit for NG in _opr.NodesGroups.ObjManager.Objlst})
-            HazardMagnitude.append({i.tag:float(i.SampledMagnitude) for i in _opr.Hazard.ObjManager.Objlst})
+            HazardMagnitude.append({i.tag:(i.SampledMagnitude) for i in _opr.Hazard.ObjManager.Objlst})
         
         #Remove loaded scenario
         _opr.Recorders.Objs_recorder_loader.ClearScenarioBank()
