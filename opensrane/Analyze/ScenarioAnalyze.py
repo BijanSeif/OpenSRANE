@@ -123,7 +123,8 @@ class ScenarioAnalyze():
         
         #Save the recorded data just for recorder objects
         if SavetoFile==True:
-            [obj.SaveToFile(fileindex) for obj in _opr.Recorders.ObjManager.Objlst]
+            [obj.SaveToFile(fileindex) for obj in _opr.Recorders.ObjManager.Objlst] #Save all Objects of subpackages that are recorded in recorders.
+            [obj.OtherSaveOnce() for obj in _opr.Recorders.ObjManager.Objlst] #Save Other subpackages that aren't defined for objs_recorder (It doesn't have any influence of affect for recordes and is only for objs_recorder.            
             if MergeSavedFiles==True: [obj._MergeAndClear() for obj in _opr.Recorders.ObjManager.Objlst]
         
         
@@ -149,11 +150,14 @@ class ScenarioAnalyze():
             # FR=[obj.DamageLevel for obj in _opr.PlantUnits.ObjManager.Objlst]
             # print(FR) #to see the damage level of objects in the ith analyzed scenario
             
-        [obj.SaveToFile(fileindex) for obj in _opr.Recorders.ObjManager.Objlst] #Save the recorded data just for recorder objects   
+        [obj.SaveToFile(fileindex) for obj in _opr.Recorders.ObjManager.Objlst] #Save the recorded data just for recorder objects  
         
         if isParallel==False:
             #Merge all created files and remove them and just put the filnal file
             if MergeSavedFiles==True: [obj._MergeAndClear() for obj in _opr.Recorders.ObjManager.Objlst]
+            
+            #Save Other subpackages that aren't defined for objs_recorder (It doesn't have any influence of affect for recordes and is only for objs_recorder.
+            [obj.OtherSaveOnce() for obj in _opr.Recorders.ObjManager.Objlst] 
 
     def MultiParallel(AnalysisNumber=100, NumberOfProcessors=3, RecorderSaveStep=5000, MergeSavedFiles=False):
         
@@ -213,6 +217,8 @@ class ScenarioAnalyze():
         pool.close()
 
         #Merge all created files and remove them and just put the filnal file
-        if MergeSavedFiles==True: [obj._MergeAndClear() for obj in _opr.Recorders.ObjManager.Objlst] 
-
+        if MergeSavedFiles==True: [obj._MergeAndClear() for obj in _opr.Recorders.ObjManager.Objlst]
+        
+        #Save Other subpackages that aren't defined for objs_recorder (It doesn't have any influence of affect for recordes and is only for objs_recorder.
+        [obj.OtherSaveOnce() for obj in _opr.Recorders.ObjManager.Objlst] 
 
