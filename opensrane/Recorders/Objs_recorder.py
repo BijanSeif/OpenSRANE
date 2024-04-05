@@ -281,13 +281,22 @@ class Objs_recorder_loader():
     @staticmethod
     def TotalNumberOfScenarios(filename):
         '''
-        This static method or function returns the maximum number of recorded or created scenarios number (Total number of scenarios_
+        This static method or function returns the maximum number of recorded or created scenarios number (Total number of scenarios)
         '''
         #get dictionary of the files and the number od analysis and scenarios boundary for each file
         FilesAnaScenNumbers=Objs_recorder_loader.ReturnFileIndexScenariosDict(filename)
         
         return max([max(file['Scenario Number Range']) for file in FilesAnaScenNumbers.values()])
 
+    @staticmethod
+    def TotalNumberOfAnalysis(filename):
+        '''
+        This static method or function returns the maximum number of Analysis or simulations (Total number of Analysis)
+        '''
+        #get dictionary of the files and the number od analysis and scenarios boundary for each file
+        FilesAnaScenNumbers=Objs_recorder_loader.ReturnFileIndexScenariosDict(filename)
+        
+        return max([max(file['Analysis Number Range']) for file in FilesAnaScenNumbers.values()])
 
     @staticmethod
     def load1RecordedScenario(ScenarioNumber, filename):
