@@ -152,7 +152,7 @@ class Objs_recorder(_NewClass):
         
         # Write data to the file    
         with open(filename, 'wb') as fileObj:
-            _pickle.dump(self.RecordedList,fileObj,protocol=-1)
+            _pickle.dump(OtherSubPackagesDict,fileObj,protocol=-1)
                 
 
     def _MergeAndClear(self):
@@ -472,10 +472,11 @@ class Objs_recorder_loader():
         # Read file and load scenario
         with open(filename+".OPR", 'rb') as fileObj:
 
-            loadlist=_pickle.load(fileObj)
+            loadDict=_pickle.load(fileObj)
+            print(loadDict)
 
-            if type(loadlist)==list:
-                scenarioDict= loadlist[ScenarioNumber]
+            if type(loadDict)==dict:
+                scenarioDict= loadDict
                 
         #feed the loaded scenario to subpackages
         for SubPackname,SubPackobj in _opr.Misc.GetModules():
