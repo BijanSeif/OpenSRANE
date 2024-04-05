@@ -48,10 +48,11 @@ class Objs_recorder(_NewClass):
     filename: name of the file that data will be record in it
     SaveStep: Number of the steps of analysis that after that, data will be record on a file
     fileAppend: Does data append to a existing file or it reset existing data in the file name
+    RecodingSubpackages: List of subpackages that Users wanna to be record by recorders. The default value is ['PlantUnits','Hazard', 'DateAndTime', 'WindData'] but others also can be added by user except 'Recorders'. The Other subpackages will be record once at the first savefile. 
     
     '''
     
-    def __init__(self,tag,filename='',SaveStep=100,fileAppend=True):
+    def __init__(self,tag,filename='',SaveStep=100,fileAppend=True, RecodingSubpackages=['PlantUnits', 'Hazard', 'DateAndTime', 'WindData']):
          
         #---- Fix Part for each class __init__ ----
         ObjManager.Add(tag,self)
@@ -65,7 +66,6 @@ class Objs_recorder(_NewClass):
         if fileAppend==False:
             self._ResetRecorder()
         
-
         self.RecordedList=[] #List that store all recorded objects inside in each happend scenario as a dictionary and send it to pickle to save in file
         
         self.RecordCounter=0
@@ -78,8 +78,17 @@ class Objs_recorder(_NewClass):
             for file in _os.listdir():
                 if file[-3:]=='OPR' and file[:len(filename)]==filename and len(file)>=len(filename+'.OPR'):
                     num=file[len(filename):-4]
-                    if num!='':
+                    if num!='' and num.isnumeric()==True:
                         if int(num)>self.MaxExistSavedfileIndex: self.MaxExistSavedfileIndex=int(num)
+
+
+
+        #List of Subpacakges that shouldn't be saved or saving them doesn't have any meaning. These subpackages have no object to be defined and saved and are just some commands
+        self.SubsNotNeededToSave=['Recorders','All','Misc','Plot','PostProcess','_New_module']
+        
+        #List of SubPackages that should be save
+        RecodingSubpackages=[ i for i in RecodingSubpackages if i not in self.SubsNotNeededToSave] #Remove subpackages that there is no need to save them if user defined them in RecodingSubpackages
+        self.RecodingSubpackages=RecodingSubpackages 
         
         
     def Record(self):
@@ -96,8 +105,8 @@ class Objs_recorder(_NewClass):
 
             CurrentScenarioDict={}
             #Get SubPackage all Objects
-            CurrentScenarioDict={SubPackname:SubPackobj.ObjManager.Objlst for SubPackname,SubPackobj in _opr.Misc.GetModules() if SubPackname!='Recorders'}
-            
+            CurrentScenarioDict={SubPackname:SubPackobj.ObjManager.Objlst for SubPackname,SubPackobj in _opr.Misc.GetModules() if SubPackname in self.RecodingSubpackages}
+                        
             #Add all current object to Objects that are in memory
             self.RecordedList.append(_deepcopy(CurrentScenarioDict))
 
@@ -123,7 +132,28 @@ class Objs_recorder(_NewClass):
         self.RecordedList=[]
         #Set RecordCounter to zero
         self.RecordCounter=0
+
         
+    def OtherSaveOnce(self):
+
+        '''
+        Method for saving subpackages that are not defined by user for saving in each analysis or simulation and using this method are saved just once
+        '''
+        SavedandNotSavedSUBS= self.RecodingSubpackages + self.SubsNotNeededToSave
+        
+        OtherSubPackagesDict={SubPackname:SubPackobj.ObjManager.Objlst for SubPackname,SubPackobj in _opr.Misc.GetModules() if SubPackname not in SavedandNotSavedSUBS}
+        
+        #Create log file to record number of the analysis
+        with open(self.filename+'.Log', "w") as f:
+            f.write(f'Number of Analysis: {0}\nNumber of Scenarios in this log: {0}')
+        
+        #Set the file name
+        filename=self.filename+'.OPR'
+        
+        # Write data to the file    
+        with open(filename, 'wb') as fileObj:
+            _pickle.dump(self.RecordedList,fileObj,protocol=-1)
+                
 
     def _MergeAndClear(self):
 
@@ -142,7 +172,7 @@ class Objs_recorder(_NewClass):
                 _os.remove(file)
 
         #Main file
-        file=filename+'.OPR'
+        file=filename+'M.OPR'
         
         #Check if append is true add main file scenarios to the recorded scenarios
         if self.fileAppend==True and _os.path.isfile(file)==True:
@@ -172,7 +202,7 @@ class Objs_recorder(_NewClass):
                 _os.remove(file)        
 
         #Main file
-        file=filename+'.Log'
+        file=filename+'M.Log'
         
         #Check if append is true add main file Number to the recorded number
         if self.fileAppend==True and _os.path.isfile(file)==True:
@@ -246,6 +276,7 @@ class Objs_recorder_loader():
             return -1  
             
         return Results
+
 
     @staticmethod
     def TotalNumberOfScenarios(filename):
@@ -324,7 +355,26 @@ class Objs_recorder_loader():
                 SubPackobj.ObjManager.Objlst=scenarioDict[SubPackname] if scenarioDict!={} else []
                 SubPackobj.ObjManager.Taglst=[obj.tag for obj in SubPackobj.ObjManager.Objlst]
                 SubPackobj.ObjManager.TagObjDict={obj.tag:obj for obj in SubPackobj.ObjManager.Objlst}
+        
+        #Finally the OtherSubpackagesSavedOnce should be loaded
+        # Read file and load scenario
+        with open(filename+".OPR", 'rb') as fileObj:
+
+            loadlist=_pickle.load(fileObj)
+
+            if type(loadlist)==list:
+                scenarioDict= loadlist[ScenarioNumber]
+                
+        #feed the loaded scenario to subpackages
+        for SubPackname,SubPackobj in _opr.Misc.GetModules():
             
+            if SubPackname!='Recorders' and SubPackname in scenarioDict.keys():
+                #replace each subpackage Objlst, Taglst, TagObjDict with what are available in the recorded scenario
+                SubPackobj.ObjManager.Objlst=scenarioDict[SubPackname] if scenarioDict!={} else []
+                SubPackobj.ObjManager.Taglst=[obj.tag for obj in SubPackobj.ObjManager.Objlst]
+                SubPackobj.ObjManager.TagObjDict={obj.tag:obj for obj in SubPackobj.ObjManager.Objlst}
+        
+        
         return 0    
 
 
@@ -403,14 +453,44 @@ class Objs_recorder_loader():
                 SubPackobj.ObjManager.Objlst=scenarioDict[SubPackname] if scenarioDict!={} else []
                 SubPackobj.ObjManager.Taglst=[obj.tag for obj in SubPackobj.ObjManager.Objlst]
                 SubPackobj.ObjManager.TagObjDict={obj.tag:obj for obj in SubPackobj.ObjManager.Objlst}
-            
+        
+        
         return 0    
 
 
+    @staticmethod
+    def LoadOtherSubPackages(filename):
+        '''
+        This function is for loading other subpackages that are saved just once and we should use it when we need them
+        '''
+        #Check if file exist
+        if filename+'.Log' not in  _os.listdir() or filename+'.OPR' not in  _os.listdir():
+            print(f'File {filename} does not exist and it OtherSubPackages are not loaded')
+            return -1
+    
+        #Finally the OtherSubpackagesSavedOnce should be loaded
+        # Read file and load scenario
+        with open(filename+".OPR", 'rb') as fileObj:
 
+            loadlist=_pickle.load(fileObj)
+
+            if type(loadlist)==list:
+                scenarioDict= loadlist[ScenarioNumber]
+                
+        #feed the loaded scenario to subpackages
+        for SubPackname,SubPackobj in _opr.Misc.GetModules():
+            
+            if SubPackname!='Recorders' and SubPackname in scenarioDict.keys():
+                #replace each subpackage Objlst, Taglst, TagObjDict with what are available in the recorded scenario
+                SubPackobj.ObjManager.Objlst=scenarioDict[SubPackname] if scenarioDict!={} else []
+                SubPackobj.ObjManager.Taglst=[obj.tag for obj in SubPackobj.ObjManager.Objlst]
+                SubPackobj.ObjManager.TagObjDict={obj.tag:obj for obj in SubPackobj.ObjManager.Objlst}
+        
+        return 0
 
 
 #Bank Part ---------------------------------------------------------------------------------------------------------------
+
 
     @staticmethod
     def loadScenarioBank(filename):
@@ -438,6 +518,7 @@ class Objs_recorder_loader():
             return -1
             
         return len(_ScenarioBank)
+      
       
     @staticmethod
     def load1ScenarioOfBank(ScenarioTag):
@@ -472,6 +553,7 @@ class Objs_recorder_loader():
         scenarioDict={}
         
         return 0
+
 
     @staticmethod
     def ClearScenarioBank():
