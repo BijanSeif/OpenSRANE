@@ -52,7 +52,7 @@ class Objs_recorder(_NewClass):
     
     '''
     
-    def __init__(self,tag,filename='',SaveStep=100,fileAppend=True, RecodingSubpackages=['PlantUnits', 'Hazard', 'DateAndTime', 'WindData']):
+    def __init__(self,tag,filename='',SaveStep=100,fileAppend=True, RecodingSubpackages=['PlantUnits', 'Hazard', 'DateAndTime', 'WindData', 'NodesGroups']):
          
         #---- Fix Part for each class __init__ ----
         ObjManager.Add(tag,self)
