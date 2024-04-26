@@ -159,14 +159,13 @@ class ScenarioAnalyze():
             #Save Other subpackages that aren't defined for objs_recorder (It doesn't have any influence of affect for recordes and is only for objs_recorder.
             [obj.OtherSaveOnce() for obj in _opr.Recorders.ObjManager.Objlst] 
 
-    def MultiParallel(AnalysisNumber=100, NumberOfProcessors=3, RecorderSaveStep=5000, MergeSavedFiles=False):
+    def MultiParallel(AnalysisNumber=100, NumberOfProcessors=3, RecordersSaveStep=5000, MergeSavedFiles=False):
         
         '''
         
         REMEMBER: The only way to use this command is to call it inside "if __name__='__main__': " 
         
-        RecorderSaveStep: if user didn't define Objs_recorder then the RecorderSaveStep will be use as save step But_
-                          if Objs_recorder were define its save step will be consider as savestep
+        RecordersSaveStep: RecordersSaveStep will be use as save step.
                           
         MergeSavedFiles: If set this option into True, When analysis finished all files will be merge into one file and for huge files it take so_
                          much memory and time!
@@ -184,15 +183,7 @@ class ScenarioAnalyze():
                 if obj.fileAppend==False:
                     obj.fileAppend==True
                     obj._ResetRecorder()   
-                    
-        MaxExistSavedfileIndex=obj.MaxExistSavedfileIndex
 
-        #Set SaveStep
-        SaveStep=None
-        for obj in _opr.Recorders.ObjManager.Objlst:
-            if obj.__class__.__name__=='Objs_recorder':
-                SaveStep=int(obj.SaveStep)
-                break
         
         #Check Number of CPUs        
         NOP=_mp.cpu_count()
@@ -201,7 +192,7 @@ class ScenarioAnalyze():
             NOP=NumberOfProcessors
         
         #Set the save step:
-        if SaveStep==None: SaveStep=int(RecorderSaveStep)
+        SaveStep=int(RecordersSaveStep)
 
         #Set Number of Analysis for each CPU
         AnalyzeList=AnalysisNumber/SaveStep if AnalysisNumber%SaveStep==0 else int(AnalysisNumber/SaveStep)+1
@@ -212,7 +203,7 @@ class ScenarioAnalyze():
         
         #Set Analyze
         print('Analysis Number of each core: ',AnalyzeList)
-        pool.starmap(_opr.Analyze.ScenarioAnalyze.MultiAnalysis, [(AnalyseNumber,True,fileindex+MaxExistSavedfileIndex+1) for fileindex,AnalyseNumber in enumerate(AnalyzeList)])
+        pool.starmap(_opr.Analyze.ScenarioAnalyze.MultiAnalysis, [(AnalyseNumber,True,fileindex+1) for fileindex,AnalyseNumber in enumerate(AnalyzeList)])
         
         pool.close()
 

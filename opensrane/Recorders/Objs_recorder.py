@@ -46,13 +46,13 @@ class Objs_recorder(_NewClass):
     This Object id for recording all of the objects in each scenario analysis
     tag= tag of the recorder
     filename: name of the file that data will be record in it
-    SaveStep: Number of the steps of analysis that after that, data will be record on a file
+    SaveStep: It was the Number of the steps of analysis that after that, data will be record on a file but it removed from objects and it is sent to analyze part. It is set to None because for preventing any error of using old created models.
     fileAppend: Does data append to a existing file or it reset existing data in the file name
     RecodingSubpackages: List of subpackages that Users wanna to be record by recorders. The default value is ['PlantUnits','Hazard', 'DateAndTime', 'WindData'] but others also can be added by user except 'Recorders'. The Other subpackages will be record once at the first savefile. 
     
     '''
     
-    def __init__(self,tag,filename='',SaveStep=100,fileAppend=True, RecodingSubpackages=['PlantUnits', 'Hazard', 'DateAndTime', 'WindData', 'NodesGroups']):
+    def __init__(self,tag,filename='',fileAppend=True, RecodingSubpackages=['PlantUnits', 'Hazard', 'DateAndTime', 'WindData', 'NodesGroups'],SaveStep=None):
          
         #---- Fix Part for each class __init__ ----
         ObjManager.Add(tag,self)
@@ -60,7 +60,6 @@ class Objs_recorder(_NewClass):
         #------------------------------------------
         
         self.filename=filename
-        self.SaveStep=SaveStep
         self.fileAppend=fileAppend
         
         if fileAppend==False:
@@ -97,7 +96,6 @@ class Objs_recorder(_NewClass):
         '''
 
         self.RecordCounter +=1
-        SaveStep=int(self.SaveStep)
 
         #If there is any damage then the data will be recorded
         if _opr.Analyze.ScenarioAnalyze.anydamage==True:
@@ -114,8 +112,11 @@ class Objs_recorder(_NewClass):
         return 0
 
     def SaveToFile(self,fileindex):
+        
+        #fileindex are from 0 to number of files. If user wanna to append the existing files then the maximum index number of existing files should be added to input fileindex
+        fileindex=fileindex+self.MaxExistSavedfileIndex
 
-            
+        
         #Create log file to record number of the analysis
         with open(self.filename+str(fileindex)+'.Log', "w") as f:
             f.write(f'Number of Analysis: {self.RecordCounter}\nNumber of Scenarios in this log: {len(self.RecordedList)}')
