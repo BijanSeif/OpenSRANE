@@ -83,7 +83,16 @@ class recorder(_NewClass):
         #Remember for parallel analysis it cause multiple remove and in parallel do not set fileAppend==False
         if fileAppend==False:
             self._Deletefile()
+
+        #If file append be True then code should find the number of maximum existing saved file and create new files with number greater than the founded number
+        self.MaxExistSavedfileIndex=0
+        if fileAppend==True:
             
+            for file in _os.listdir():
+                if file[-6:]=='OPRrec' and file[:len(filename)]==filename and len(file)>=len(filename+'.OPRrec'):
+                    num=file[len(filename):-7]
+                    if num!='' and num.isnumeric()==True:
+                        if int(num)>self.MaxExistSavedfileIndex: self.MaxExistSavedfileIndex=int(num)            
         
     def Record(self):
 
@@ -214,11 +223,12 @@ class recorder(_NewClass):
     def SaveToFile(self,fileindex):
 
         #fileindex: is an integer that will be add to the end of the filename to save in seperate file
-        cnt=fileindex
+        #fileindex are from 0 to number of files. If user wanna to append the existing files then the maximum index number of existing files should be added to input fileindex
+        cnt=fileindex+self.MaxExistSavedfileIndex
 
 
         #Define Header lines (Two First Rows)
-        if cnt==0:
+        if cnt==1:
             
             #Fill two first header line (If Scenario==0 and append=False means the it is in the initial case)
             #-----------Case recordfield be 'DamageLevel'
@@ -227,13 +237,11 @@ class recorder(_NewClass):
                 header="%"+str(self.AnalyzeCounter) + '-'+"recordfield='DamageLevel'" #First line specify Number of analysis and the recordfield name
                 header=f'{header}\n%PlantUnits tags = {[tag for tag in _opr.PlantUnits.ObjManager.TagObjDict.keys()]}' #Secondline specifiy the tags of the plant units
 
-
             #-----------Case recordfield be 'NodesGroupIsDamaged'
             if self.recordfield=='NodesGroupIsDamaged':
 
                 header="%"+str(self.AnalyzeCounter) + '-'+"recordfield='NodesGroupIsDamaged'" #First line specify Number of analysis and the recordfield name
                 header=f'{header}\n%NodesGroup with tags {self.NodesGroupTag} and with type={_opr.NodesGroups.ObjManager.TagObjDict[self.NodesGroupTag].Type}' #Secondline shows the tags and type of the nodesgroup
-
 
             #-----------Case recordfield be 'FragilityTag'
             if self.recordfield=='FragilityTag':
@@ -241,13 +249,11 @@ class recorder(_NewClass):
                 header="%"+str(self.AnalyzeCounter) + '-'+"recordfield='FragilityTag'" #First line specify Number of analysis and the recordfield name
                 header=f'{header}\n%PlantUnits tags = {[tag for tag in _opr.PlantUnits.ObjManager.TagObjDict.keys()]}' #Secondline specifiy the tags of the plant units
 
-
             #-----------Case recordfield be 'LOC'
             if self.recordfield=='LOC':
 
                 header="%"+str(self.AnalyzeCounter) + '-'+"recordfield='LOC'" #First line specify Number of analysis and the recordfield name
                 header=f'{header}\n%PlantUnits tags = {[tag for tag in _opr.PlantUnits.ObjManager.TagObjDict.keys()]}' #Secondline specifiy the tags of the plant units
-
 
             #-----------Case recordfield be 'HazardMag'
             if self.recordfield=='HazardMag':
@@ -284,7 +290,7 @@ class recorder(_NewClass):
         #Consider header or not
         files=_os.listdir()
         file=self.filename+'.OPRrec'
-        if cnt==0 and (self.fileAppend==False or file not in files) :
+        if cnt==1 and (self.fileAppend==False or file not in files) :
             self.results=str(header)+str(self.results)
         else:
             #If the file is not the primary file, the number of analysis should be added to the first line and will be merge
@@ -307,11 +313,11 @@ class recorder(_NewClass):
     
     def _Deletefile(self):
         
-        files=_os.listdir()
-        file=self.filename+'.OPRrec'
-        if file in files:
-            _os.remove(file)
-
+            
+        #Remove all OPR files
+        for file in _os.listdir():
+            if file[-6:]=='OPRrec' and file[:len(self.filename)]==self.filename:
+                _os.remove(file)
 
     def _MergeAndClear(self):
         '''
@@ -336,7 +342,7 @@ class recorder(_NewClass):
             #read file data
             with open(file,'r') as f: 
                 data=f.readlines()
-                if cn==0: FirstLine=data[0] #Save firstline for case append=False
+                if cn==1: FirstLine=data[0] #Save firstline for case append=False
                 Number_of_analysis=data[0].split('-')[0][1:]
                 AllAnalysisNumber=AllAnalysisNumber+int(Number_of_analysis)
                 data=''.join(data[1:])  
