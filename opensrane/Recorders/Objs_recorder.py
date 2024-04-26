@@ -49,10 +49,11 @@ class Objs_recorder(_NewClass):
     SaveStep: It was the Number of the steps of analysis that after that, data will be record on a file but it removed from objects and it is sent to analyze part. It is set to None because for preventing any error of using old created models.
     fileAppend: Does data append to a existing file or it reset existing data in the file name
     RecodingSubpackages: List of subpackages that Users wanna to be record by recorders. The default value is ['PlantUnits','Hazard', 'DateAndTime', 'WindData'] but others also can be added by user except 'Recorders'. The Other subpackages will be record once at the first savefile. 
+    MergeSavedFiles: If set this option into True, When analysis finished all files will be merge into one file and for huge files it take so much memory and time!
     
     '''
     
-    def __init__(self,tag,filename='',fileAppend=True, RecodingSubpackages=['PlantUnits', 'Hazard', 'DateAndTime', 'WindData', 'NodesGroups'],SaveStep=None):
+    def __init__(self,tag,filename='',fileAppend=True, RecodingSubpackages=['PlantUnits', 'Hazard', 'DateAndTime', 'WindData', 'NodesGroups'], MergeSavedFiles=False, SaveStep=None):
          
         #---- Fix Part for each class __init__ ----
         ObjManager.Add(tag,self)
@@ -69,6 +70,8 @@ class Objs_recorder(_NewClass):
         
         self.RecordCounter=0
         
+        #Set does the code merge all created files together or not
+        self.MergeSavedFiles=MergeSavedFiles
         
         #If file append be True then code should find the number of maximum existing saved file and create new files with number greater than the founded number
         self.MaxExistSavedfileIndex=0
@@ -157,65 +160,52 @@ class Objs_recorder(_NewClass):
                 
 
     def _MergeAndClear(self):
-
-        filename=self.filename
-
-        #Merge OPR Files------------------------------------------------------------------------------------
-        AllScenarioList=[]
-        for file in _os.listdir():
-            if file[-3:]=='OPR' and file[:len(filename)]==filename and len(file)>len(filename+'.OPR'):
-                
-                # Read file
-                with open(file, 'rb') as fileObj:
-                    loaddict=_pickle.load(fileObj)
-                    AllScenarioList =AllScenarioList +  loaddict if type(loaddict)==list else AllScenarioList
-                #Remove file
-                _os.remove(file)
-
-        #Main file
-        file=filename+'M.OPR'
         
-        #Check if append is true add main file scenarios to the recorded scenarios
-        if self.fileAppend==True and _os.path.isfile(file)==True:
-                # Read Main file
-                with open(file, 'rb') as fileObj:
-                    loaddict=_pickle.load(fileObj)
-                
-                AllScenarioList = loaddict+AllScenarioList  if type(loaddict)==list else AllScenarioList
+        #At the end of analysis _MergeAndClear method for any object will be called and for each object 
+        if self.MergeSavedFiles==True:
         
-        #Write to file
-        with open(file, 'wb') as fileObj:
-            _pickle.dump(AllScenarioList,fileObj,protocol=-1)
+            filename=self.filename
 
-        
-        #Merge Log files-------------------------------------------------------------------------------------
-        AnalyzeNumber=0
-        ScenarioNumber=0
-        for file in _os.listdir():
-            if file[-3:]=='Log' and file[:len(filename)]==filename and len(file)>len(filename+'.Log'):
-                
-                # Read file
-                with open(file, 'r') as fileObj:
-                    number=fileObj.read()
-                    number=number.split()[3],number.split()[-1]
-                    AnalyzeNumber, ScenarioNumber =AnalyzeNumber +  int(number[0]), ScenarioNumber +  int(number[1])
-                #Remove file
-                _os.remove(file)        
+            #Merge OPR Files------------------------------------------------------------------------------------
+            AllScenarioList=[]
+            for file in _os.listdir():
+                if file[-3:]=='OPR' and file[:len(filename)]==filename and len(file)>len(filename+'.OPR'):
+                    
+                    # Read file
+                    with open(file, 'rb') as fileObj:
+                        loaddict=_pickle.load(fileObj)
+                        AllScenarioList =AllScenarioList +  loaddict if type(loaddict)==list else AllScenarioList
+                    #Remove file
+                    _os.remove(file)
 
-        #Main file
-        file=filename+'M.Log'
-        
-        #Check if append is true add main file Number to the recorded number
-        if self.fileAppend==True and _os.path.isfile(file)==True:
-                # Read Main file
-                with open(file, 'r') as fileObj:
-                    number=fileObj.read()
-                    number=number.split()[3],number.split()[-1]
-                    AnalyzeNumber, ScenarioNumber =AnalyzeNumber +  int(number[0]), ScenarioNumber +  int(number[1])
-                
-        #Write to file
-        with open(file, 'w') as fileObj:
-            fileObj.write(f'Number of Analysis: {AnalyzeNumber}\nNumber of Scenarios in this log: {ScenarioNumber}')
+            #Main file
+            file=filename+'M.OPR' #M suffix stands for showing this is the merged files
+            
+            #Write to file
+            with open(file, 'wb') as fileObj:
+                _pickle.dump(AllScenarioList,fileObj,protocol=-1)
+
+            
+            #Merge Log files-------------------------------------------------------------------------------------
+            AnalyzeNumber=0
+            ScenarioNumber=0
+            for file in _os.listdir():
+                if file[-3:]=='Log' and file[:len(filename)]==filename and len(file)>len(filename+'.Log'):
+                    
+                    # Read file
+                    with open(file, 'r') as fileObj:
+                        number=fileObj.read()
+                        number=number.split()[3],number.split()[-1]
+                        AnalyzeNumber, ScenarioNumber =AnalyzeNumber +  int(number[0]), ScenarioNumber +  int(number[1])
+                    #Remove file
+                    _os.remove(file)        
+
+            #Main file
+            file=filename+'M.Log' #M suffix stands for showing this is the merged files
+                    
+            #Write to file
+            with open(file, 'w') as fileObj:
+                fileObj.write(f'Number of Analysis: {AnalyzeNumber}\nNumber of Scenarios in this log: {ScenarioNumber}')
 
 
     def _ResetRecorder(self):

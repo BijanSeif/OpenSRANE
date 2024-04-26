@@ -130,7 +130,7 @@ class ScenarioAnalyze():
         
         
         
-    def MultiAnalysis(AnalysisNumber=100,isParallel=False,fileindex=0, MergeSavedFiles=False):
+    def MultiAnalysis(AnalysisNumber=100,isParallel=False,fileindex=0, MergeSavedFiles=None):
         
         '''
         This function implement multiple scenario analysis and record results
@@ -138,9 +138,7 @@ class ScenarioAnalyze():
         ResetRecorder: Does the function clear the recorder file and record scenarios from zero or add new analysed scenarios to the end of the current file
         
         fileindex: is an integer that will be add to the end of the filename to save in seperate file
-        
-        MergeSavedFiles: If set this option into True, When analysis finished all files will be merge into one file and for huge files it take so_
-                         much memory and time!
+
         '''
         
         #Do the analysis
@@ -153,22 +151,20 @@ class ScenarioAnalyze():
         [obj.SaveToFile(fileindex) for obj in _opr.Recorders.ObjManager.Objlst] #Save the recorded data just for recorder objects  
         
         if isParallel==False:
-            #Merge all created files and remove them and just put the filnal file
-            if MergeSavedFiles==True: [obj._MergeAndClear() for obj in _opr.Recorders.ObjManager.Objlst]
+            #Run Merge all created files and remove them and just put the final file for objects that user set the mergesavedfiles equal to True
+            [obj._MergeAndClear() for obj in _opr.Recorders.ObjManager.Objlst]
             
             #Save Other subpackages that aren't defined for objs_recorder (It doesn't have any influence of affect for recordes and is only for objs_recorder.
             [obj.OtherSaveOnce() for obj in _opr.Recorders.ObjManager.Objlst] 
 
-    def MultiParallel(AnalysisNumber=100, NumberOfProcessors=3, RecordersSaveStep=5000, MergeSavedFiles=False):
+    def MultiParallel(AnalysisNumber=100, NumberOfProcessors=3, RecordersSaveStep=5000, MergeSavedFiles=None):
         
         '''
         
         REMEMBER: The only way to use this command is to call it inside "if __name__='__main__': " 
         
         RecordersSaveStep: RecordersSaveStep will be use as save step.
-                          
-        MergeSavedFiles: If set this option into True, When analysis finished all files will be merge into one file and for huge files it take so_
-                         much memory and time!
+
         '''
 
         #For Recorder objects if append is false the append should be True 
@@ -207,8 +203,8 @@ class ScenarioAnalyze():
         
         pool.close()
 
-        #Merge all created files and remove them and just put the filnal file
-        if MergeSavedFiles==True: [obj._MergeAndClear() for obj in _opr.Recorders.ObjManager.Objlst]
+        #Run Merge all created files and remove them and just put the final file for objects that user set the mergesavedfiles equal to True
+        [obj._MergeAndClear() for obj in _opr.Recorders.ObjManager.Objlst]
         
         #Save Other subpackages that aren't defined for objs_recorder (It doesn't have any influence of affect for recordes and is only for objs_recorder.
         [obj.OtherSaveOnce() for obj in _opr.Recorders.ObjManager.Objlst] 
