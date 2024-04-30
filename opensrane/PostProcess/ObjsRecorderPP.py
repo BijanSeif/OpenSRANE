@@ -38,155 +38,138 @@ import numpy as _np
 import os as _os
 
 class ObjsRecorderPP():
-    
-   
-    def Analyze(ObjsRecorer_Filename='',Number_Of_LOC_Histogram_Bins=100):
+
+
+    def __init__(self,ObjsRecorer_filename='',Number_Of_LOC_Histogram_Bins=100):
         
-        '''
-        ObjsRecorer_Filename: Name of the file that objects are recorded
-        '''
-        #If user didn't define any file 
-        if ObjsRecorer_Filename=='':
-            print('No file has been defined!')
-            return
         
-                
-        #Define variables
-        DamagedLevelList=[]     #list of the plant units Damage level list, each value is a Dictionary of Damage level of the plant units for each recorded scenario
-        FragilityTagList=[]     #List of the plant units happend fragility tag Dictionaries, 
-        LOCList=[]              #List of the PlantUnits tag and max Loss of Containment value Dictionary
-        NodesGroupDamageList=[] #List of NodesGroup isDamaged Dict, each Dictionary is NodesGroupTag and corresponding Damagelist
-        NodesGroupTypeDict={}   #Dictionray of each NodesGroup object that keys are tag of nodes group and values are the type of the nodes group
-        NodesGroupDamProb={}    #Dictionray of each NodesGroup object that keys are tag of nodes group and values are the probability of their damage
-        NodesGroupRadiationAveDict={}  #Dictionary of NodesGroup Radiation Data, and keys is Nodes Group tag and value is the list of Radiation values Average 
-        NodesGroupOverPressureAveDict={}  #Dictionary of NodesGroup OverPressure Data, and keys is Nodes Group tag and value is the list of OverPressure values Average
-        NodesGroupOVPProbAveDict={}     #Dictionary of NodesGroup OverPressure corresponding Probit Data, and keys is Nodes Group tag and value is the list of Probit(OverPressure) values Average 
-        NodesGroupRadProbAveDict={}     #Dictionary of NodesGroup Radiation Probit Data, and keys is Nodes Group tag and value is the list of Probit(Radiation) values Average
-        UnitsZeroDamageProb={}  #Probability of each PlantUnit zero level damage
-        ProbOfFragilities={}    #Probability of each fragility or probit happening or governing
-        DmglvlLOC={}            #Damagelevel and corresponding expected loss of containment
-        HazardMagnitude=[]      #List of the hazard tags and magnitudes (tag as key and magnitude as value)
-        ScenNameDamLvlDict={}   #Dictionary that its key is Scenario name and the value is its corresponding Damage level Dictionary
-
-        NodesGroupRadiationList=[]     #list of NodesGroup Radiation Data, key: NodesGroup tag and value:Radiation Value (Just to get data)
-        NodesGroupOverPressureList=[]  #list of NodesGroup OverPressure List, key: NodesGroup tag and value:Radiation Value
-        NodesGroupOVPProbitList=[]
-        NodesGroupRadProbitList=[]
-
-        file=ObjsRecorer_Filename+'.Log'
-
-        #check if file exist
+        
+        
         files=_os.listdir()
-
-        if file not in files:
-            print(f'{file} not found and not loaded!')
-            return -1  
-
-        if ObjsRecorer_Filename+'.OPR' not in files:
-            print(f'{ObjsRecorer_Filename +".OPR"} not found and not loaded!')
-            return -1           
         
+        #If user didn't define any file or file doesn't exist
+        if ObjsRecorer_filename=='':
+            raise ValueError('No file has been defined or .Log or .OPR file not found!')
 
+        if ObjsRecorer_filename+'.Log' not in files:
+            raise ValueError(f'{ObjsRecorer_filename+".Log"} not found and not loaded!')
+
+        if ObjsRecorer_filename+'.OPR' not in files:
+            raise ValueError(f'{ObjsRecorer_filename+".OPR"} not found and not loaded!')
+            return -1  
+            
+        self.ObjsRecorer_filename=ObjsRecorer_filename
+        self.Number_Of_LOC_Histogram_Bins=Number_Of_LOC_Histogram_Bins
+        
         #Get Total Number of Analysis
-        TotalScenario=_opr.Recorders.Objs_recorder_loader.TotalNumberOfAnalysis(ObjsRecorer_Filename)
+        self.TotalScenario=_opr.Recorders.Objs_recorder_loader.TotalNumberOfAnalysis(ObjsRecorer_filename)
+        
+        #Get number of scenarios
+        NumberOfScenarios=_opr.Recorders.Objs_recorder_loader.TotalNumberOfScenarios(ObjsRecorer_filename)
 
         #Load other subpackages that are not recorded by user
-        _opr.Recorders.Objs_recorder_loader.LoadOtherSubPackages(ObjsRecorer_Filename)
+        _opr.Recorders.Objs_recorder_loader.LoadOtherSubPackages(ObjsRecorer_filename)
 
-        #Load Scenario Bank
-        NumberOfScenarios=_opr.Recorders.Objs_recorder_loader.loadScenarioBank(ObjsRecorer_Filename)
+        #Define variables
+        self.DamagedLevelListVar=[]     #list of the plant units Damage level list, each value is a Dictionary of Damage level of the plant units for each recorded scenario
+        self.FragilityTagListVar=[]     #List of the plant units happend fragility tag Dictionaries, 
+        self.LOCListVar=[]              #List of the PlantUnits tag and max Loss of Containment value Dictionary
+        self.NodesGroupDamageListVar=[] #List of NodesGroup isDamaged Dict, each Dictionary is NodesGroupTag and corresponding Damagelist
+        self.HazardMagnitudeVar=[]      #List of the hazard tags and magnitudes (tag as key and magnitude as value)
+        self.NodesGroupRadiationList=[]     #list of NodesGroup Radiation Data, key: NodesGroup tag and value:Radiation Value (Just to get data)
+        self.NodesGroupOverPressureList=[]  #list of NodesGroup OverPressure List, key: NodesGroup tag and value:Radiation Value
+        self.NodesGroupOVPProbitList=[]
+        self.NodesGroupRadProbitList=[]        
 
         #Star Opening all recorded files to export data
         for scenariotag in range(1,NumberOfScenarios+1):
 
             #Load Scenario
-            _opr.Recorders.Objs_recorder_loader.load1ScenarioOfBank(scenariotag)
+            _opr.Recorders.Objs_recorder_loader.load1ScenarioItt(scenariotag, ObjsRecorer_filename)
 
             #Fill variables for loaded scenario
-            DamagedLevelList.append({i.tag:i.DamageLevel for i in _opr.PlantUnits.ObjManager.Objlst})
-            FragilityTagList.append({i.tag:i.DamageFragilityTag for i in _opr.PlantUnits.ObjManager.Objlst})
-            LOCList.append({i.tag:(i.OutFlowModelObject.TotalMassLiquid_Release if i.OutFlowModelObject!=None else None) for i in _opr.PlantUnits.ObjManager.Objlst})
-            NodesGroupDamageList.append({NG.tag:([(0 if i==False else 1) for i in NG.isDamagedList] if NG.isDamagedList!=[] else [0]*len(NG.xGlobalList)) for NG in _opr.NodesGroups.ObjManager.Objlst})
-            NodesGroupRadiationList.append({NG.tag:NG.Radiation_Intensity for NG in _opr.NodesGroups.ObjManager.Objlst} )
-            NodesGroupOverPressureList.append({NG.tag:NG.OverPressure_Intensity for NG in _opr.NodesGroups.ObjManager.Objlst})
-            NodesGroupOVPProbitList.append({NG.tag:NG.OverPressure_Probit for NG in _opr.NodesGroups.ObjManager.Objlst})
-            NodesGroupRadProbitList.append({NG.tag:NG.Radiation_Probit for NG in _opr.NodesGroups.ObjManager.Objlst})
-            HazardMagnitude.append({i.tag:(i.SampledMagnitude) for i in _opr.Hazard.ObjManager.Objlst})
-        
-        #Remove loaded scenario
-        _opr.Recorders.Objs_recorder_loader.ClearScenarioBank()
-
-        #Modify NodesGroup Radiation and overpressure Dictionaries in better format
-        NodesGroupRadiationAveDict={NG.tag:[0 for i in NG.xGlobalList] for NG in _opr.NodesGroups.ObjManager.Objlst}
-        NodesGroupOverPressureAveDict={NG.tag:[0 for i in NG.xGlobalList] for NG in _opr.NodesGroups.ObjManager.Objlst}
-        NodesGroupOVPProbAveDict={NG.tag:[0 for i in NG.xGlobalList] for NG in _opr.NodesGroups.ObjManager.Objlst}
-        NodesGroupRadProbAveDict={NG.tag:[0 for i in NG.xGlobalList] for NG in _opr.NodesGroups.ObjManager.Objlst}
-        
-        #sum values
-        for Dict in NodesGroupRadiationList:
-            for NGtag in Dict.keys():
-                NodesGroupRadiationAveDict[NGtag]=[i+j for i,j in zip(Dict[NGtag],NodesGroupRadiationAveDict[NGtag])]
-        
-        for Dict in NodesGroupOverPressureList:
-            for NGtag in Dict.keys():
-                NodesGroupOverPressureAveDict[NGtag]=[i+j for i,j in zip(Dict[NGtag],NodesGroupOverPressureAveDict[NGtag])]
-
-        for Dict in NodesGroupOVPProbitList:
-            for NGtag in Dict.keys():
-                NodesGroupOVPProbAveDict[NGtag]=[i+j for i,j in zip(Dict[NGtag],NodesGroupOVPProbAveDict[NGtag])]
-
-        for Dict in NodesGroupRadProbitList:
-            for NGtag in Dict.keys():
-                NodesGroupRadProbAveDict[NGtag]=[i+j for i,j in zip(Dict[NGtag],NodesGroupRadProbAveDict[NGtag])]
-
-        #Convert above values to average
-        for NGtag in NodesGroupRadiationAveDict.keys():
-            NodesGroupRadiationAveDict[NGtag]=[i/TotalScenario for i in NodesGroupRadiationAveDict[NGtag]]
-            NodesGroupOverPressureAveDict[NGtag]=[i/TotalScenario for i in NodesGroupOverPressureAveDict[NGtag]]
-            NodesGroupOVPProbAveDict[NGtag]=[i/TotalScenario for i in NodesGroupOVPProbAveDict[NGtag]]
-            NodesGroupRadProbAveDict[NGtag]=[i/TotalScenario for i in NodesGroupRadProbAveDict[NGtag]]
-        
+            self.DamagedLevelListVar.append({i.tag:i.DamageLevel for i in _opr.PlantUnits.ObjManager.Objlst})
+            self.FragilityTagListVar.append({i.tag:i.DamageFragilityTag for i in _opr.PlantUnits.ObjManager.Objlst})
+            self.LOCListVar.append({i.tag:(i.OutFlowModelObject.TotalMassLiquid_Release if i.OutFlowModelObject!=None else None) for i in _opr.PlantUnits.ObjManager.Objlst})
+            self.NodesGroupDamageListVar.append({NG.tag:([(0 if i==False else 1) for i in NG.isDamagedList] if NG.isDamagedList!=[] else [0]*len(NG.xGlobalList)) for NG in _opr.NodesGroups.ObjManager.Objlst})
+            self.NodesGroupRadiationList.append({NG.tag:NG.Radiation_Intensity for NG in _opr.NodesGroups.ObjManager.Objlst} )
+            self.NodesGroupOverPressureList.append({NG.tag:NG.OverPressure_Intensity for NG in _opr.NodesGroups.ObjManager.Objlst})
+            self.NodesGroupOVPProbitList.append({NG.tag:NG.OverPressure_Probit for NG in _opr.NodesGroups.ObjManager.Objlst})
+            self.NodesGroupRadProbitList.append({NG.tag:NG.Radiation_Probit for NG in _opr.NodesGroups.ObjManager.Objlst})
+            self.HazardMagnitudeVar.append({i.tag:(i.SampledMagnitude) for i in _opr.Hazard.ObjManager.Objlst})
 
         #Modify LOCList to maximum loss value or 0
-        LOCList=[{tag:(max(loss) if loss!=None else 0) for tag,loss in LossDic.items()} for LossDic in LOCList]
-        #NodesGroupTypeDict
-        NodesGroupTypeDict={NG.tag:NG.Type for NG in _opr.NodesGroups.ObjManager.Objlst}
-
-        #Create Scenario Name And Damage level dicttionary
-        for dmlvl in DamagedLevelList:
-            ScenNameDamLvlDict["-".join(ObjsRecorderPP._LevelList(dmlvl))]=dmlvl
-
-        #Calculate some probabilities from above results
-        #------ Probability of Units Zero Level Damage
-        UnitsZeroDamageProb={obj.tag:0 for obj in _opr.PlantUnits.ObjManager.Objlst}
-        for DamLevelDict in DamagedLevelList:
-            for tag,DamLev in DamLevelDict.items() :
-                if DamLev==0: UnitsZeroDamageProb[tag]=UnitsZeroDamageProb[tag]+1
-
-        #convert to probability
-        UnitsZeroDamageProb={tag:DamLev/TotalScenario for tag,DamLev in UnitsZeroDamageProb.items()}
-
-        #------ Probability of happening Fragilities and probits
-        ProbOfFragilities={obj.tag:0 for obj in _opr.Fragilities.ObjManager.Objlst}
-        for FragDict in FragilityTagList:
-            for Fragtag in FragDict.values() :
-                if Fragtag!=None: ProbOfFragilities[Fragtag]=ProbOfFragilities[Fragtag]+1
-
-        #convert to probability
-        ProbOfFragilities={tag:Num/TotalScenario for tag,Num in ProbOfFragilities.items()}
-
-        #----Probability of Loss of Containment 
-        ListOfLoc=[sum(list(LOCDIC.values())) for LOCDIC in LOCList]
+        self.LOCListVar=[{tag:(max(loss) if loss!=None else 0) for tag,loss in LossDic.items()} for LossDic in self.LOCListVar]
         
-        minLoc=min([i for i in ListOfLoc if i!=0])
-        maxLoc=max([i for i in ListOfLoc if i!=0])
-        nbins=Number_Of_LOC_Histogram_Bins
-        hist, bins=_np.histogram(ListOfLoc,bins=[minLoc+(maxLoc-minLoc)/nbins*i for i in range(nbins+1)]) #length of the bins always should be one more than length of the hist
-        probloc=[i/TotalScenario for i in hist] 
+        
+    def DamagedLevelList(self):
+        return self.DamagedLevelListVar
+        
+    def FragilityTagList(self):
+        return self.FragilityTagListVar
+        
+    def LOCList(self):
+    
+                
+        return self.LOCListVar
+      
+    def NodesGroupDamageList(self):
+        return self.NodesGroupDamageListVar
+    
+    def NodesGroupTypeDict(self):
+     
+        #NodesGroupTypeDict Dictionray of each NodesGroup object that keys are tag of nodes group and values are the type of the nodes group
+        NodesGroupTypeDictVar={NG.tag:NG.Type for NG in _opr.NodesGroups.ObjManager.Objlst}    
+        
+        return NodesGroupTypeDictVar
 
+    def NodesGroupDamageProbability(self):
+        
+        NodesGroupDamProb={}    #Dictionray of each NodesGroup object that keys are tag of nodes group and values are the probability of their damage
 
+        #----NodesGroupDamProb calculate each nodesgroup damage probability at each node
+        #calculate nodesgroup tag and number of the nodes
+        NodesGroupDamageList=[i for i in self.NodesGroupDamageList() if i!={}]
+        
+        for NG in NodesGroupDamageList:
+            
+            NGtag=list(NG.keys())[0]
+
+            #If nodes not in the NodesGroupDamProb add it as new and if is, add values to its values
+            if NGtag not in list(NodesGroupDamProb.keys()):
+                NodesGroupDamProb[NGtag]=NG[NGtag]
+            else:
+                NodesGroupDamProb[NGtag]=[i+j for i,j in zip(NodesGroupDamProb[NGtag],NG[NGtag])]
+
+        #convert to expected Value
+        for NG in NodesGroupDamProb.keys():
+            NodesGroupDamProb[NG]=[i/self.TotalScenario for i in NodesGroupDamProb[NG]]    
+        
+        return NodesGroupDamProb
+        
+    def TotalLOCList(self):
+        
+        #----Probability of Loss of Containment 
+        ListOfLoc=[sum(list(LOCDIC.values())) for LOCDIC in self.LOCList()]
+        
+        return ListOfLoc
+        
+    def LOC_bins_hist_probloc(self):
+    
+        minLoc=min([i for i in self.TotalLOCList() if i!=0])
+        maxLoc=max([i for i in self.TotalLOCList() if i!=0])
+        nbins=self.Number_Of_LOC_Histogram_Bins
+        hist, bins=_np.histogram(self.TotalLOCList(),bins=[minLoc+(maxLoc-minLoc)/nbins*i for i in range(nbins+1)]) #length of the bins always should be one more than length of the hist
+        probloc=[i/self.TotalScenario for i in hist] 
+
+        
+        return [bins,hist,probloc]
+        
+    def Damagelevel_eLOC(self):
+        DmglvlLOC={}   #Damagelevel and corresponding expected loss of containment
+        
         #----Damagelevel and corresponding expected loss of containment
-        for dam,loc in zip(DamagedLevelList,LOCList):
+        for dam,loc in zip(self.DamagedLevelList(),self.LOCList()):
             for tag,dmlvl in dam.items():
                 if (dmlvl not in list(DmglvlLOC.keys()) and dmlvl!=None):
                     DmglvlLOC[dmlvl]=0
@@ -195,41 +178,53 @@ class ObjsRecorderPP():
                 
         #convert to expected Value
         for dmlvl,loc in DmglvlLOC.items():
-            DmglvlLOC[dmlvl]=loc/TotalScenario
+            DmglvlLOC[dmlvl]=loc/self.TotalScenario    
+        
+        return DmglvlLOC
 
-        #----NodesGroupDamProb calculate each nodesgroup damage probability at each node
-        #calculate nodesgroup tag and number of the nodes
-        NodesGroupDamageList=[i for i in NodesGroupDamageList if i!={}]
-        for NG in NodesGroupDamageList:
-            
-            NGtag=list(NG.keys())[0]
-            
+    def Total_Number_Of_Scenarios(self):
+        
+        return self.TotalScenario
+        
+    def UnitsZeroDamageProb(self):
+    
+        UnitsZeroDamageProbVar={}  #Probability of each PlantUnit zero level damage
+        
+        #Calculate some probabilities from above results
+        #------ Probability of Units Zero Level Damage
+        UnitsZeroDamageProbVar={obj.tag:0 for obj in _opr.PlantUnits.ObjManager.Objlst}
+        for DamLevelDict in self.DamagedLevelList():
+            for tag,DamLev in DamLevelDict.items() :
+                if DamLev==0: UnitsZeroDamageProbVar[tag]=UnitsZeroDamageProbVar[tag]+1
 
-            #If nodes not in the NodesGroupDamProb add it as new and if is, add values to its values
-            if NGtag not in list(NodesGroupDamProb.keys()):
-                NodesGroupDamProb[NGtag]=NG[NGtag]
-            else:
-                NodesGroupDamProb[NGtag]=[i+j for i,j in zip(NodesGroupDamProb[NGtag],NG[NGtag])]
+        #convert to probability
+        UnitsZeroDamageProbVar={tag:DamLev/self.TotalScenario for tag,DamLev in UnitsZeroDamageProbVar.items()}    
+    
+        return UnitsZeroDamageProbVar
+        
+    def ProbOfFragilities(self):
+        ProbOfFragilitiesVar={}    #Probability of each fragility or probit happening or governing
 
+        #------ Probability of happening Fragilities and probits
+        ProbOfFragilitiesVar={obj.tag:0 for obj in _opr.Fragilities.ObjManager.Objlst}
+        for FragDict in self.FragilityTagList():
+            for Fragtag in FragDict.values() :
+                if Fragtag!=None: ProbOfFragilitiesVar[Fragtag]=ProbOfFragilitiesVar[Fragtag]+1
 
-        #convert to expected Value
-        for NG in NodesGroupDamProb.keys():
-            NodesGroupDamProb[NG]=[i/TotalScenario for i in NodesGroupDamProb[NG]]
-
+        #convert to probability
+        ProbOfFragilitiesVar={tag:Num/self.TotalScenario for tag,Num in ProbOfFragilitiesVar.items()}
+        
+        return ProbOfFragilitiesVar
+        
+    def ScenariosAnalyzeNumbers(self):
         
         #------ Probability of Damage levels and scenarios and subscenarios and Scenarios analyze number
-        Results={} #Store scenario and number of happening (ScenariosProbability)
-        ScenariosAnalyzeNumbers={} #Store scenario(key)  and number of alnazed scenarios list (Value)
-        DamlvlScenDict={}   #Dictionary of damage level (key) and corresponding Scenarios set (Value)
-        for ScenarioNum,damagelistrow in enumerate(DamagedLevelList):
+        Results={}                    #Store scenario and number of happening (ScenariosProbability)
+        ScenariosAnalyzeNumbersVar={} #Store scenario(key)  and number of alnazed scenarios list (Value)
+        DamlvlScenDict=self.Damagelevel_Scenario_Dict()             #Dictionary of damage level (key) and corresponding Scenarios set (Value)
+        for ScenarioNum,damagelistrow in enumerate(self.DamagedLevelList()):
             LevelList=ObjsRecorderPP._LevelList(damagelistrow)
             LevelList=['-'.join(LevelList[:i])  for i in range(1,len(LevelList)+1)]
-            #fill DamlvlScenDict
-            for lvl,name in enumerate(LevelList):
-                if lvl not in DamlvlScenDict.keys():
-                    DamlvlScenDict[lvl]=set([name])
-                else:
-                    DamlvlScenDict[lvl].update([name])
 
             #Fill Results for ScenariosProbability
             if LevelList!=[]: 
@@ -243,50 +238,164 @@ class ObjsRecorderPP():
             #Fill Results for ScenariosProbability
             if LevelList!=[]: 
                 i=LevelList[-1]
-                if i not in ScenariosAnalyzeNumbers.keys():
-                    ScenariosAnalyzeNumbers[i]=[ScenarioNum]
+                if i not in ScenariosAnalyzeNumbersVar.keys():
+                    ScenariosAnalyzeNumbersVar[i]=[ScenarioNum]
                 else:
-                    ScenariosAnalyzeNumbers[i].append(ScenarioNum)  
+                    ScenariosAnalyzeNumbersVar[i].append(ScenarioNum)
+        
+        return ScenariosAnalyzeNumbersVar
+        
+    def ScenariosProbability(self):
 
+        #------ Probability of Damage levels and scenarios and subscenarios and Scenarios analyze number
+        Results={}                    #Store scenario and number of happening (ScenariosProbability)
+        DamlvlScenDict=self.Damagelevel_Scenario_Dict()             #Dictionary of damage level (key) and corresponding Scenarios set (Value)
+        for ScenarioNum,damagelistrow in enumerate(self.DamagedLevelList()):
+            LevelList=ObjsRecorderPP._LevelList(damagelistrow)
+            LevelList=['-'.join(LevelList[:i])  for i in range(1,len(LevelList)+1)]
+
+            #Fill Results for ScenariosProbability
+            if LevelList!=[]: 
+                
+                for i in  LevelList:
+                    if i not in Results.keys():
+                        Results[i]=1
+                    else:
+                        Results[i]=Results[i]+1
+                        
         #Convert Results number to probability(value) (Scenario(key)) 
-        ScenariosProbability={tag:val/TotalScenario for tag,val in Results.items()}
+        
+        ScenariosProbabilityVar={tag:val/self.TotalScenario for tag,val in Results.items()}
+        
+        return ScenariosProbabilityVar
+            
+    def ScanariosSubScenario(self):
+
+        #------ Probability of Damage levels and scenarios and subscenarios and Scenarios analyze number
+        Results={}                    #Store scenario and number of happening (ScenariosProbability)
+        DamlvlScenDict=self.Damagelevel_Scenario_Dict()             #Dictionary of damage level (key) and corresponding Scenarios set (Value)
+        for ScenarioNum,damagelistrow in enumerate(self.DamagedLevelList()):
+            LevelList=ObjsRecorderPP._LevelList(damagelistrow)
+            LevelList=['-'.join(LevelList[:i])  for i in range(1,len(LevelList)+1)]
+
+            #Fill Results for ScenariosProbability
+            if LevelList!=[]: 
+                
+                for i in  LevelList:
+                    if i not in Results.keys():
+                        Results[i]=1
+                    else:
+                        Results[i]=Results[i]+1        
 
         #Scenarios(key) and its SubScenariosList(Value) Dictionary
         dmlvl=lambda scenario: [key for key,val in DamlvlScenDict.items() if scenario in val][0] #Find scenario damage level
-        ScanariosSubScenario={Scenario:[] for Scenario in Results.keys()}
-        for Scenario in ScanariosSubScenario.keys():
-            ScanariosSubScenario[Scenario]=[SubScen for SubScen in Results.keys() if (dmlvl(SubScen)==dmlvl(Scenario)+1 and Scenario in SubScen)]
+        ScanariosSubScenarioVar={Scenario:[] for Scenario in Results.keys()}
+        for Scenario in ScanariosSubScenarioVar.keys():
+            ScanariosSubScenarioVar[Scenario]=[SubScen for SubScen in Results.keys() if (dmlvl(SubScen)==dmlvl(Scenario)+1 and Scenario in SubScen)]        
+    
+        return ScanariosSubScenarioVar
+        
+    def Damagelevel_Scenario_Dict(self):
 
-
-
-        Results=dict(DamagedLevelList=DamagedLevelList,
-                                    FragilityTagList=FragilityTagList,
-                                    LOCList=LOCList,
-                                    NodesGroupDamageList=NodesGroupDamageList,
-                                    NodesGroupTypeDict=NodesGroupTypeDict,
-                                    NodesGroupDamageProbability=NodesGroupDamProb,
-                                    TotalLOCList=ListOfLoc,
-                                    LOC_bins_hist_probloc=[bins,hist,probloc],
-                                    Damagelevel_eLOC=DmglvlLOC,
-                                    Total_Number_Of_Scenarios=TotalScenario,
-                                    UnitsZeroDamageProb=UnitsZeroDamageProb,
-                                    ProbOfFragilities=ProbOfFragilities,
-                                    ScenariosAnalyzeNumbers=ScenariosAnalyzeNumbers,
-                                    ScenariosProbability=ScenariosProbability,
-                                    ScanariosSubScenario=ScanariosSubScenario,
-                                    Damagelevel_Scenario_Dict=DamlvlScenDict,
-                                    HazardMagnitude=HazardMagnitude,
-                                    ScenarioName_DamageLevel_Dict=ScenNameDamLvlDict,
-                                    NodesGroupRadiationDict=NodesGroupRadiationAveDict,
-                                    NodesGroupOverPressureDict=NodesGroupOverPressureAveDict,
-                                    NodesGroup_OVP_Probit_Dict=NodesGroupOVPProbAveDict,
-                                    NodesGroup_Rad_Probit_Dict=NodesGroupRadProbAveDict,)
-
-
-        return Results
+        DamlvlScenDict={}             #Dictionary of damage level (key) and corresponding Scenarios set (Value)
+        for ScenarioNum,damagelistrow in enumerate(self.DamagedLevelList()):
+            LevelList=ObjsRecorderPP._LevelList(damagelistrow)
+            LevelList=['-'.join(LevelList[:i])  for i in range(1,len(LevelList)+1)]
+            #fill DamlvlScenDict
+            for lvl,name in enumerate(LevelList):
+                if lvl not in DamlvlScenDict.keys():
+                    DamlvlScenDict[lvl]=set([name])
+                else:
+                    DamlvlScenDict[lvl].update([name])        
+        
+        return DamlvlScenDict
+        
+    def HazardMagnitude(self):
+    
+        return self.HazardMagnitudeVar
+        
+    def ScenarioName_DamageLevel_Dict(self):
+        ScenNameDamLvlDict={}   #Dictionary that its key is Scenario name and the value is its corresponding Damage level Dictionary
+        
+        for dmlvl in self.DamagedLevelList():
+            ScenNameDamLvlDict["-".join(ObjsRecorderPP._LevelList(dmlvl))]=dmlvl    
             
+        return ScenNameDamLvlDict
         
+    def NodesGroupRadiationDict(self):
+    
+        NodesGroupRadiationAveDict={}  #Dictionary of NodesGroup Radiation Data, and keys is Nodes Group tag and value is the list of Radiation values Average 
         
+        #Modify NodesGroup Radiation and overpressure Dictionaries in better format
+        NodesGroupRadiationAveDict={NG.tag:[0 for i in NG.xGlobalList] for NG in _opr.NodesGroups.ObjManager.Objlst}
+        
+        #sum values
+        for Dict in self.NodesGroupRadiationList:
+            for NGtag in Dict.keys():
+                NodesGroupRadiationAveDict[NGtag]=[i+j for i,j in zip(Dict[NGtag],NodesGroupRadiationAveDict[NGtag])]
+        
+        #Convert above values to average
+        for NGtag in NodesGroupRadiationAveDict.keys():
+            NodesGroupRadiationAveDict[NGtag]=[i/self.TotalScenario for i in NodesGroupRadiationAveDict[NGtag]]
+            
+        return NodesGroupRadiationAveDict
+        
+    def NodesGroupOverPressureDict(self):
+        
+        NodesGroupOverPressureAveDict={}  #Dictionary of NodesGroup OverPressure Data, and keys is Nodes Group tag and value is the list of OverPressure values Average
+        
+        #Modify NodesGroup Radiation and overpressure Dictionaries in better format
+        NodesGroupOverPressureAveDict={NG.tag:[0 for i in NG.xGlobalList] for NG in _opr.NodesGroups.ObjManager.Objlst}
+
+        #sum values
+        for Dict in self.NodesGroupOverPressureList:
+            for NGtag in Dict.keys():
+                NodesGroupOverPressureAveDict[NGtag]=[i+j for i,j in zip(Dict[NGtag],NodesGroupOverPressureAveDict[NGtag])]     
+
+        #Convert above values to average
+        for NGtag in NodesGroupOverPressureAveDict.keys():
+            NodesGroupOverPressureAveDict[NGtag]=[i/self.TotalScenario for i in NodesGroupOverPressureAveDict[NGtag]]
+            
+        return NodesGroupOverPressureAveDict
+        
+    def NodesGroup_OVP_Probit_Dict(self):
+        NodesGroupOVPProbAveDict={}     #Dictionary of NodesGroup OverPressure corresponding Probit Data, and keys is Nodes Group tag and value is the list of Probit(OverPressure) values Average 
+        
+        #Modify NodesGroup Radiation and overpressure Dictionaries in better format
+        NodesGroupOVPProbAveDict={NG.tag:[0 for i in NG.xGlobalList] for NG in _opr.NodesGroups.ObjManager.Objlst}
+
+        #sum values
+        for Dict in self.NodesGroupOVPProbitList:
+            for NGtag in Dict.keys():
+                NodesGroupOVPProbAveDict[NGtag]=[i+j for i,j in zip(Dict[NGtag],NodesGroupOVPProbAveDict[NGtag])]
+
+        #Convert above values to average
+        for NGtag in NodesGroupOVPProbAveDict.keys():
+            NodesGroupOVPProbAveDict[NGtag]=[i/self.TotalScenario for i in NodesGroupOVPProbAveDict[NGtag]]
+            
+        return NodesGroupOVPProbAveDict
+
+    def NodesGroup_Rad_Probit_Dict(self):
+        NodesGroupRadProbAveDict={}     #Dictionary of NodesGroup Radiation Probit Data, and keys is Nodes Group tag and value is the list of Probit(Radiation) values Average
+        
+        #Modify NodesGroup Radiation and overpressure Dictionaries in better format
+        NodesGroupRadProbAveDict={NG.tag:[0 for i in NG.xGlobalList] for NG in _opr.NodesGroups.ObjManager.Objlst}
+
+        #sum values
+        for Dict in self.NodesGroupRadProbitList:
+            for NGtag in Dict.keys():
+                NodesGroupRadProbAveDict[NGtag]=[i+j for i,j in zip(Dict[NGtag],NodesGroupRadProbAveDict[NGtag])]        
+
+        #Convert above values to average
+        for NGtag in NodesGroupRadProbAveDict.keys():
+            NodesGroupRadProbAveDict[NGtag]=[i/self.TotalScenario for i in NodesGroupRadProbAveDict[NGtag]]
+            
+        return NodesGroupRadProbAveDict
+
+
+
+
+    @staticmethod    
     def _LevelList(damagelistrow):
         #This function returns damage levels and corresponding tags
         #Format= (Damage Level):[tag of damaged units]
