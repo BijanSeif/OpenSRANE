@@ -165,18 +165,22 @@ class Objs_recorder(_NewClass):
         if self.MergeSavedFiles==True:
         
             filename=self.filename
-
+            
+            #Set files equal the files that their name is similar with
+            files=_os.listdir()            
+            Recfiles=[file for file in files if (file.startswith(filename) and file.endswith('OPR') and len(file)>len(filename+'.OPR'))]
+            
             #Merge OPR Files------------------------------------------------------------------------------------
             AllScenarioList=[]
-            for file in _os.listdir():
-                if file[-3:]=='OPR' and file[:len(filename)]==filename and len(file)>len(filename+'.OPR'):
+            
+            for file in Recfiles:
                     
-                    # Read file
-                    with open(file, 'rb') as fileObj:
-                        loaddict=_pickle.load(fileObj)
-                        AllScenarioList =AllScenarioList +  loaddict if type(loaddict)==list else AllScenarioList
-                    #Remove file
-                    _os.remove(file)
+                # Read file
+                with open(file, 'rb') as fileObj:
+                    loaddict=_pickle.load(fileObj)
+                    AllScenarioList =AllScenarioList +  loaddict if type(loaddict)==list else AllScenarioList
+                #Remove file
+                _os.remove(file)
 
             #Main file
             file=filename+'M.OPR' #M suffix stands for showing this is the merged files
@@ -189,16 +193,17 @@ class Objs_recorder(_NewClass):
             #Merge Log files-------------------------------------------------------------------------------------
             AnalyzeNumber=0
             ScenarioNumber=0
-            for file in _os.listdir():
-                if file[-3:]=='Log' and file[:len(filename)]==filename and len(file)>len(filename+'.Log'):
+            
+            Recfiles=[file for file in files if (file.startswith(filename) and file.endswith('Log') and len(file)>len(filename+'.Log'))]
+            for file in Recfiles:
                     
-                    # Read file
-                    with open(file, 'r') as fileObj:
-                        number=fileObj.read()
-                        number=number.split()[3],number.split()[-1]
-                        AnalyzeNumber, ScenarioNumber =AnalyzeNumber +  int(number[0]), ScenarioNumber +  int(number[1])
-                    #Remove file
-                    _os.remove(file)        
+                # Read file
+                with open(file, 'r') as fileObj:
+                    number=fileObj.read()
+                    number=number.split()[3],number.split()[-1]
+                    AnalyzeNumber, ScenarioNumber =AnalyzeNumber +  int(number[0]), ScenarioNumber +  int(number[1])
+                #Remove file
+                _os.remove(file)        
 
             #Main file
             file=filename+'M.Log' #M suffix stands for showing this is the merged files
