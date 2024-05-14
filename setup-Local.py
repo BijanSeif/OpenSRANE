@@ -49,7 +49,7 @@ setup(
     version="0.0.0",
     author="Bijan Sayyafzadeh",
     author_email="<OpenSRANE@Gmail.com>",
-    description="Open Software for Risk Assessment of Natech Events",
+    description="Open System for Risk Assessment of Natech Events",
     long_description_content_type="text/markdown",
     long_description=long_description ,
     package_data={
