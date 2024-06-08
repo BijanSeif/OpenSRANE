@@ -97,7 +97,7 @@ class SimultaniousGas(_NewClass,_GlobalParameters):
         Vsubs=UnitObject.V_subs
 
      
-        Rho=SubstanceObject.Density
+        Rho=SubstanceObject.GasDensity
         M=Vsubs*Rho*Release_Ratio                    #Initial Mass of the Substance
         
         
